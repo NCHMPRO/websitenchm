@@ -244,8 +244,25 @@ h1 { color: #667eea; font-size: 32px; font-weight: bold; text-align: center; }
 <script>
 let movements = [];
 
-// Load saved data from localStorage
+// Get today's date (format YYYY-MM-DD)
+function getToday() {
+  const d = new Date();
+  return d.getFullYear() + '-' + (d.getMonth()+1) + '-' + d.getDate();
+}
+
+// Load saved data
 function loadData() {
+  const savedDate = localStorage.getItem('shunterDate');
+  const today = getToday();
+
+  if (savedDate !== today) {
+    // New day → clear everything
+    localStorage.removeItem('shunterMovements');
+    localStorage.setItem('shunterDate', today);
+    movements = [];
+    return;
+  }
+
   const saved = localStorage.getItem('shunterMovements');
   if (saved) {
     movements = JSON.parse(saved).map(m => ({
@@ -255,9 +272,10 @@ function loadData() {
   }
 }
 
-// Save data to localStorage
+// Save data
 function saveData() {
   localStorage.setItem('shunterMovements', JSON.stringify(movements));
+  localStorage.setItem('shunterDate', getToday());
 }
 
 const bayGroups = {
@@ -265,7 +283,7 @@ const bayGroups = {
   'B13':'ADORJAN','B14':'ADORJAN','B15':'ADORJAN','B16':'ADORJAN','B17':'ADORJAN',
   'B18':'MARK','B19':'MARK','B20':'MARK','B21':'MARK','B22':'MARK','B23':'MARK','B24':'MARK','B25':'MARK',
   'C1':'ASDA','C2':'ASDA','C3':'ASDA','C4':'ASDA','C5':'ASDA',
-  'C6':'COLLECTION','C7':'COLLECTION','C8':'COLLECTION','C9':'COLLECTION',
+  'C6':'CAOLLECTION','C7':'CAOLLECTION','C8':'CAOLLECTION','C9':'CAOLLECTION',
   'C10':'MORRISONS','C11':'MORRISONS','C12':'MORRISONS','C13':'MORRISONS',
   'C14':'TESCO','C15':'TESCO','C16':'TESCO','C17':'TESCO','C18':'TESCO','C19':'TESCO','C20':'TESCO','C21':'TESCO','C22':'TESCO','C23':'TESCO',
   'C24':'PULING','C25':'PULING','C26':'PULING'
@@ -275,7 +293,6 @@ const bravoBays = Array.from({length:25}, (_,i)=>'B'+(i+1));
 const charlieBays = Array.from({length:26}, (_,i)=>'C'+(i+1));
 const allBays = [...bravoBays, ...charlieBays, 'Yard'];
 
-// Initialize dropdowns
 function initDropdowns() {
   const fromSelect = document.getElementById('from-select');
   const toSelect = document.getElementById('to-select');
@@ -293,7 +310,6 @@ function initDropdowns() {
   });
 }
 
-// Initialize bay reference display
 function initBayReference() {
   const bravoList = document.getElementById('bravo-list');
   const charlieList = document.getElementById('charlie-list');
@@ -313,7 +329,6 @@ function initBayReference() {
   });
 }
 
-// Submit move
 function submitMove() {
   const fromSelect = document.getElementById('from-select');
   const toSelect = document.getElementById('to-select');
@@ -392,6 +407,7 @@ initDropdowns();
 initBayReference();
 loadHistory();
 </script>
+
 </body>
 </html>
 
