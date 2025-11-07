@@ -124,7 +124,6 @@ h1 { color: #667eea; font-size: 32px; font-weight: bold; text-align: center; }
   .bay { 
     min-height: 90px; 
     font-size: 16px;
-    touch-action: none;
     -webkit-user-select: none;
     user-select: none;
   }
@@ -132,7 +131,6 @@ h1 { color: #667eea; font-size: 32px; font-weight: bold; text-align: center; }
   .yard-button { 
     padding: 40px; 
     font-size: 20px;
-    touch-action: none;
     min-height: 100px;
   }
   h1 { font-size: 24px; }
@@ -195,7 +193,11 @@ let dragState = {
   dropTarget: null,
   offsetX: 0,
   offsetY: 0,
-  scrollInterval: null
+  scrollInterval: null,
+  longPressTimer: null,
+  isDragging: false,
+  startX: 0,
+  startY: 0
 };
 
 const bayGroups = {
@@ -265,6 +267,7 @@ function handleDragStart(element, clientX, clientY, bayName) {
 }
 
 function handleDragMove(clientX, clientY) {
+  if (!dragState.isDragging) return;
   if (!dragState.ghost) return;
   
   // Update ghost position
@@ -304,6 +307,11 @@ function handleDragMove(clientX, clientY) {
 function handleDragEnd() {
   stopAutoScroll();
   
+  // Clear long press timer if it exists
+  if (dragState.longPressTimer) {
+    clearTimeout(dragState.longPressTimer);
+  }
+  
   if (dragState.ghost) {
     dragState.ghost.remove();
   }
@@ -312,7 +320,7 @@ function handleDragEnd() {
     dragState.element.classList.remove('dragging');
   }
   
-  if (dragState.dropTarget) {
+  if (dragState.dropTarget && dragState.isDragging) {
     dragState.dropTarget.classList.remove('drag-over');
     
     const fromId = dragState.element.id;
@@ -336,7 +344,11 @@ function handleDragEnd() {
     dropTarget: null,
     offsetX: 0,
     offsetY: 0,
-    scrollInterval: null
+    scrollInterval: null,
+    longPressTimer: null,
+    isDragging: false,
+    startX: 0,
+    startY: 0
   };
 }
 
@@ -381,24 +393,56 @@ function createBayEl(bay){
   
   // Touch events for mobile
   bayEl.addEventListener('touchstart', e => {
-    e.preventDefault();
     const touch = e.touches[0];
-    handleDragStart(bayEl, touch.clientX, touch.clientY, bay);
+    dragState.startX = touch.clientX;
+    dragState.startY = touch.clientY;
+    dragState.element = bayEl;
+    
+    // Start long press timer (500ms)
+    dragState.longPressTimer = setTimeout(() => {
+      // Long press detected - start drag
+      e.preventDefault();
+      dragState.isDragging = true;
+      handleDragStart(bayEl, touch.clientX, touch.clientY, bay);
+      
+      // Add haptic feedback if available
+      if (navigator.vibrate) {
+        navigator.vibrate(50);
+      }
+    }, 500);
   });
   
   bayEl.addEventListener('touchmove', e => {
+    if (!dragState.isDragging) {
+      // Check if user moved too much (scrolling intent)
+      const touch = e.touches[0];
+      const moveX = Math.abs(touch.clientX - dragState.startX);
+      const moveY = Math.abs(touch.clientY - dragState.startY);
+      
+      if (moveX > 10 || moveY > 10) {
+        // User is scrolling, cancel the long press
+        if (dragState.longPressTimer) {
+          clearTimeout(dragState.longPressTimer);
+          dragState.longPressTimer = null;
+        }
+      }
+      return; // Allow normal scrolling
+    }
+    
+    // We're dragging - prevent scrolling and handle drag
     e.preventDefault();
     const touch = e.touches[0];
     handleDragMove(touch.clientX, touch.clientY);
   });
   
   bayEl.addEventListener('touchend', e => {
-    e.preventDefault();
+    if (dragState.isDragging) {
+      e.preventDefault();
+    }
     handleDragEnd();
   });
   
   bayEl.addEventListener('touchcancel', e => {
-    e.preventDefault();
     handleDragEnd();
   });
   
@@ -439,24 +483,56 @@ function initBays(){
   
   // Touch events for mobile
   yardBtn.addEventListener('touchstart', e => {
-    e.preventDefault();
     const touch = e.touches[0];
-    handleDragStart(yardBtn, touch.clientX, touch.clientY, 'Yard');
+    dragState.startX = touch.clientX;
+    dragState.startY = touch.clientY;
+    dragState.element = yardBtn;
+    
+    // Start long press timer (500ms)
+    dragState.longPressTimer = setTimeout(() => {
+      // Long press detected - start drag
+      e.preventDefault();
+      dragState.isDragging = true;
+      handleDragStart(yardBtn, touch.clientX, touch.clientY, 'Yard');
+      
+      // Add haptic feedback if available
+      if (navigator.vibrate) {
+        navigator.vibrate(50);
+      }
+    }, 500);
   });
   
   yardBtn.addEventListener('touchmove', e => {
+    if (!dragState.isDragging) {
+      // Check if user moved too much (scrolling intent)
+      const touch = e.touches[0];
+      const moveX = Math.abs(touch.clientX - dragState.startX);
+      const moveY = Math.abs(touch.clientY - dragState.startY);
+      
+      if (moveX > 10 || moveY > 10) {
+        // User is scrolling, cancel the long press
+        if (dragState.longPressTimer) {
+          clearTimeout(dragState.longPressTimer);
+          dragState.longPressTimer = null;
+        }
+      }
+      return; // Allow normal scrolling
+    }
+    
+    // We're dragging - prevent scrolling and handle drag
     e.preventDefault();
     const touch = e.touches[0];
     handleDragMove(touch.clientX, touch.clientY);
   });
   
   yardBtn.addEventListener('touchend', e => {
-    e.preventDefault();
+    if (dragState.isDragging) {
+      e.preventDefault();
+    }
     handleDragEnd();
   });
   
   yardBtn.addEventListener('touchcancel', e => {
-    e.preventDefault();
     handleDragEnd();
   });
 }
