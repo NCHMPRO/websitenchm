@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shunter App - Drag & Drop Bays</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: 100vh;
+  padding: 15px;
+}
+.container { max-width: 1400px; margin: 0 auto; }
+header {
+  background: white;
+  padding: 20px;
+  border-radius: 15px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  margin-bottom: 20px;
+}
+h1 { color: #667eea; font-size: 32px; font-weight: bold; text-align: center; }
+.tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+.tab {
+  flex: 1;
+  padding: 18px;
+  background: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 20px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+.tab.active {
+  background: #667eea;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+.content { display: none; }
+.content.active { display: block; }
+.status-bar {
+  background: #fbbf24;
+  color: #78350f;
+  padding: 15px 20px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  font-size: 18px;
+  font-weight: bold;
+  text-align: center;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+.building {
+  background: white;
+  padding: 20px;
+  border-radius: 15px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+.building-header { font-size: 24px; font-weight: bold; margin-bottom: 15px; color: #1f2937; }
+.bay-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 10px;
+}
+.bay {
+  aspect-ratio: 1;
+  border: 3px solid #e5e7eb;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  background: #f9fafb;
+  cursor: grab;
+  transition: all 0.2s;
+  text-align: center;
+}
+.bay.drag-over { background: #d1fae5; border-color: #10b981; }
+.yard-section {
+  background: white;
+  padding: 20px;
+  border-radius: 15px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+.yard-button {
+  width: 100%;
+  padding: 30px;
+  background: #f3f4f6;
+  border: 3px dashed #9ca3af;
+  border-radius: 12px;
+  font-size: 24px;
+  font-weight: bold;
+  text-align: center;
+  transition: all 0.3s;
+  cursor: grab;
+}
+.yard-button.drag-over { background: #d1fae5; border-color: #10b981; }
+.dashboard-table { width: 100%; background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+.dashboard-table table { width: 100%; border-collapse: collapse; }
+.dashboard-table th { background: #667eea; color: white; padding: 15px; text-align: left; font-size: 16px; }
+.dashboard-table td { padding: 12px 15px; border-bottom: 1px solid #e5e7eb; font-size: 16px; }
+.dashboard-table tr:last-child td { border-bottom: none; }
+.dashboard-table tr:hover { background: #f9fafb; }
+.done-row { background: #d1fae5; color: #065f46; font-weight: bold; }
+.done-row button { display: none; }
+@media (max-width: 768px) {
+  .bay-grid { grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 8px; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <header><h1>🚛 Shunter App</h1></header>
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('move', event)">Move Bays</button>
+    <button class="tab" onclick="switchTab('history', event)">History</button>
+  </div>
+
+  <!-- MOVE TAB -->
+  <div id="move-content" class="content active">
+    <div id="status-bar" class="status-bar" style="display:none;"></div>
+
+    <div class="building building-bravo">
+      <div class="building-header">🏢 Building B (Bravo) - 25 Bays</div>
+      <div class="bay-grid" id="bravo-bays"></div>
+    </div>
+
+    <div class="building building-charlie">
+      <div class="building-header">🏢 Building C (Charlie) - 26 Bays</div>
+      <div class="bay-grid" id="charlie-bays"></div>
+    </div>
+
+    <div class="yard-section">
+      <div class="building-header">🅿️ Yard</div>
+      <div class="yard-button" id="yard-button">YARD</div>
+    </div>
+  </div>
+
+  <!-- HISTORY TAB -->
+  <div id="history-content" class="content">
+    <div class="dashboard-table">
+      <table>
+        <thead>
+          <tr>
+            <th>From</th>
+            <th>To</th>
+            <th>Time</th>
+            <th>Done</th>
+          </tr>
+        </thead>
+        <tbody id="history-body"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+let movements = [];
+
+const bayGroups = {
+  'B1':'ANDREE','B2':'ANDREE','B3':'ANDREE','B4':'ANDREE','B5':'ANDREE','B6':'ANDREE','B7':'ANDREE','B8':'ANDREE','B9':'ANDREE','B10':'ANDREE','B11':'ANDREE','B12':'ANDREE',
+  'B13':'ADORJAN','B14':'ADORJAN','B15':'ADORJAN','B16':'ADORJAN','B17':'ADORJAN',
+  'B18':'MARK','B19':'MARK','B20':'MARK','B21':'MARK','B22':'MARK','B23':'MARK','B24':'MARK','B25':'MARK',
+  'C1':'ASDA','C2':'ASDA','C3':'ASDA','C4':'ASDA','C5':'ASDA',
+  'C6':'CAOLLECTION','C7':'CAOLLECTION','C8':'CAOLLECTION','C9':'CAOLLECTION',
+  'C10':'MORRISONS','C11':'MORRISONS','C12':'MORRISONS','C13':'MORRISONS',
+  'C14':'TESCO','C15':'TESCO','C16':'TESCO','C17':'TESCO','C18':'TESCO','C19':'TESCO','C20':'TESCO','C21':'TESCO','C22':'TESCO','C23':'TESCO',
+  'C24':'PULING','C25':'PULING','C26':'PULING'
+};
+
+const bravoBays = Array.from({length:25}, (_,i)=>'B'+(i+1));
+const charlieBays = Array.from({length:26}, (_,i)=>'C'+(i+1));
+
+function createBayEl(bay){
+  const bayEl = document.createElement('div');
+  bayEl.className = 'bay';
+  bayEl.id = `bay-${bay}`;
+  const numberDiv = document.createElement('div');
+  numberDiv.textContent = bay;
+  const groupDiv = document.createElement('div');
+  groupDiv.style.fontSize='14px';
+  groupDiv.style.marginTop='5px';
+  groupDiv.textContent = bayGroups[bay] || '';
+  bayEl.appendChild(numberDiv);
+  bayEl.appendChild(groupDiv);
+
+  bayEl.setAttribute('draggable', true);
+  bayEl.addEventListener('dragstart', e=>{
+    e.dataTransfer.setData('text/plain', bayEl.id);
+    document.getElementById('status-bar').style.display='block';
+    document.getElementById('status-bar').textContent=`Dragging ${bay}`;
+  });
+  bayEl.addEventListener('dragover', e=>e.preventDefault());
+  bayEl.addEventListener('dragenter', ()=>bayEl.classList.add('drag-over'));
+  bayEl.addEventListener('dragleave', ()=>bayEl.classList.remove('drag-over'));
+  bayEl.addEventListener('drop', e=>{
+    e.preventDefault();
+    bayEl.classList.remove('drag-over');
+    const fromId = e.dataTransfer.getData('text/plain');
+    const toId = bayEl.id;
+    if(fromId === toId) return;
+    movements.unshift({
+      from: fromId.replace('bay-',''),
+      to: toId.replace('bay-',''),
+      time: new Date(),
+      done: false
+    });
+    document.getElementById('status-bar').textContent=`Moved ${fromId.replace('bay-','')} → ${toId.replace('bay-','')}`;
+    loadHistory();
+  });
+  return bayEl;
+}
+
+function initBays(){
+  const bravoBaysEl = document.getElementById('bravo-bays');
+  const charlieBaysEl = document.getElementById('charlie-bays');
+  bravoBays.forEach(bay => bravoBaysEl.appendChild(createBayEl(bay)));
+  charlieBays.forEach(bay => charlieBaysEl.appendChild(createBayEl(bay)));
+
+  const yardBtn = document.getElementById('yard-button');
+  yardBtn.addEventListener('dragover', e=>e.preventDefault());
+  yardBtn.addEventListener('dragenter', ()=>yardBtn.classList.add('drag-over'));
+  yardBtn.addEventListener('dragleave', ()=>yardBtn.classList.remove('drag-over'));
+  yardBtn.addEventListener('drop', e=>{
+    e.preventDefault();
+    yardBtn.classList.remove('drag-over');
+    const fromId = e.dataTransfer.getData('text/plain');
+    if(fromId==='yard-button') return;
+    movements.unshift({
+      from: fromId.replace('bay-',''),
+      to: 'Yard',
+      time: new Date(),
+      done: false
+    });
+    document.getElementById('status-bar').textContent=`Moved ${fromId.replace('bay-','')} → Yard`;
+    loadHistory();
+  });
+  yardBtn.setAttribute('draggable', true);
+  yardBtn.addEventListener('dragstart', e=>{
+    e.dataTransfer.setData('text/plain','yard-button');
+    document.getElementById('status-bar').textContent=`Dragging Yard`;
+  });
+}
+
+function loadHistory(){
+  const hb = document.getElementById('history-body');
+  hb.innerHTML='';
+  movements.slice(0,50).forEach((m,index)=>{
+    const time = m.time.toLocaleString('en-GB',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+    hb.innerHTML += `<tr data-index="${index}" class="${m.done?'done-row':''}">
+      <td>${m.from}</td>
+      <td>${m.to}</td>
+      <td>${time}</td>
+      <td><button onclick="markDone(${index})">✅</button></td>
+    </tr>`;
+  });
+  if(movements.length===0)
+    hb.innerHTML='<tr><td colspan="4" style="text-align:center; color:#9ca3af;">No moves yet</td></tr>';
+}
+
+function markDone(index){
+  movements[index].done = true;
+  loadHistory();
+}
+
+function switchTab(tab,event){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.content').forEach(c=>c.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById(`${tab}-content`).classList.add('active');
+}
+
+// Initialize
+initBays();
+loadHistory();
+</script>
+</body>
+</html>
