@@ -316,20 +316,22 @@ function submitMove() {
     alert('FROM and TO cannot be the same');
     return;
   }
-  if (!trailer) {
-    alert('Please enter the trailer number');
-    return;
-  }
-  
+
+  // Add movement (trailer can be blank)
   movements.unshift({
     from: from,
     to: to,
-    trailer: trailer,
+    trailer: trailer || '-',  // store '-' if empty
     time: new Date(),
     done: false
   });
   
-  successMsg.textContent = `✅ Trailer ${trailer} moved from ${from} → ${to}`;
+  // Show success message
+  if (trailer) {
+    successMsg.textContent = `✅ Trailer ${trailer} moved from ${from} → ${to}`;
+  } else {
+    successMsg.textContent = `✅ Moved ${from} → ${to}`;
+  }
   successMsg.style.display = 'block';
   setTimeout(() => { successMsg.style.display = 'none'; }, 3000);
   
@@ -339,6 +341,7 @@ function submitMove() {
   
   loadHistory();
 }
+
 
 function loadHistory(){
   const hb = document.getElementById('history-body');
