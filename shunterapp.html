@@ -42,99 +42,121 @@ h1 { color: #667eea; font-size: 32px; font-weight: bold; text-align: center; }
 }
 .content { display: none; }
 .content.active { display: block; }
-.status-bar {
-  background: #fbbf24;
-  color: #78350f;
+.move-form {
+  background: white;
+  padding: 25px;
+  border-radius: 15px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  margin-bottom: 20px;
+}
+.form-group {
+  margin-bottom: 20px;
+}
+.form-group label {
+  display: block;
+  font-size: 18px;
+  font-weight: bold;
+  color: #1f2937;
+  margin-bottom: 8px;
+}
+.form-group select {
+  width: 100%;
+  padding: 15px;
+  font-size: 18px;
+  border: 2px solid #e5e7eb;
+  border-radius: 10px;
+  background: white;
+  cursor: pointer;
+  transition: border-color 0.3s;
+}
+.form-group select:focus {
+  outline: none;
+  border-color: #667eea;
+}
+.move-button {
+  width: 100%;
+  padding: 20px;
+  background: #667eea;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 20px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+.move-button:hover {
+  background: #5568d3;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+}
+.move-button:active {
+  transform: translateY(0);
+}
+.move-button:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+  transform: none;
+}
+.bay-reference {
+  background: white;
+  padding: 20px;
+  border-radius: 15px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  margin-bottom: 20px;
+}
+.bay-section {
+  margin-bottom: 15px;
+}
+.bay-section h3 {
+  font-size: 18px;
+  font-weight: bold;
+  color: #667eea;
+  margin-bottom: 10px;
+}
+.bay-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.bay-chip {
+  padding: 8px 12px;
+  background: #f3f4f6;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+  border: 1px solid #e5e7eb;
+}
+.success-message {
+  background: #d1fae5;
+  color: #1f1f1f;
   padding: 15px 20px;
   border-radius: 12px;
   margin-bottom: 20px;
   font-size: 18px;
   font-weight: bold;
   text-align: center;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  display: none;
 }
-.building {
-  background: white;
-  padding: 20px;
-  border-radius: 15px;
-  margin-bottom: 20px;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-}
-.building-header { font-size: 24px; font-weight: bold; margin-bottom: 15px; color: #1f2937; }
-.bay-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-  gap: 10px;
-}
-.bay {
-  aspect-ratio: 1;
-  border: 3px solid #e5e7eb;
-  border-radius: 12px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-  background: #f9fafb;
-  cursor: grab;
-  transition: all 0.2s;
-  text-align: center;
-}
-.bay.drag-over { background: #d1fae5; border-color: #10b981; }
-.yard-section {
-  background: white;
-  padding: 20px;
-  border-radius: 15px;
-  margin-bottom: 20px;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-}
-.yard-button {
-  width: 100%;
-  padding: 30px;
-  background: #f3f4f6;
-  border: 3px dashed #9ca3af;
-  border-radius: 12px;
-  font-size: 24px;
-  font-weight: bold;
-  text-align: center;
-  transition: all 0.3s;
-  cursor: grab;
-}
-.yard-button.drag-over { background: #d1fae5; border-color: #10b981; }
 .dashboard-table { width: 100%; background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
 .dashboard-table table { width: 100%; border-collapse: collapse; }
 .dashboard-table th { background: #667eea; color: white; padding: 15px; text-align: left; font-size: 16px; }
 .dashboard-table td { padding: 12px 15px; border-bottom: 1px solid #e5e7eb; font-size: 16px; }
 .dashboard-table tr:last-child td { border-bottom: none; }
 .dashboard-table tr:hover { background: #f9fafb; }
-.done-row { background: #d1fae5; color: #065f46; font-weight: bold; }
+.done-row { background: #3d3d3d; color: #353535; font-weight: bold; }
 .done-row button { display: none; }
-.bay.dragging { opacity: 0.5; transform: scale(1.05); z-index: 1000; }
-.drag-ghost {
-  position: fixed;
-  pointer-events: none;
-  opacity: 0.8;
-  transform: scale(1.1);
-  z-index: 10000;
-  transition: none;
-  box-shadow: 0 8px 16px rgba(0,0,0,0.3);
-}
 @media (max-width: 768px) {
-  .bay-grid { grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 12px; }
-  .bay { 
-    min-height: 90px; 
-    font-size: 16px;
-    -webkit-user-select: none;
-    user-select: none;
-  }
-  .building { padding: 15px; margin-bottom: 15px; }
-  .yard-button { 
-    padding: 40px; 
-    font-size: 20px;
-    min-height: 100px;
-  }
   h1 { font-size: 24px; }
-  .tab { font-size: 16px; padding: 15px; }
+  .tab { font-size: 16px; padding: 15px; }d
+  .form-group label { font-size: 16px; }
+  .form-group select { font-size: 16px; padding: 12px; }
+  .move-button { font-size: 18px; padding: 18px; }
+  .bay-reference { padding: 15px; }
+  .dashboard-table th { font-size: 14px; padding: 12px; }
+  .dashboard-table td { font-size: 14px; padding: 10px; }
 }
 </style>
 </head>
@@ -149,21 +171,35 @@ h1 { color: #667eea; font-size: 32px; font-weight: bold; text-align: center; }
 
   <!-- MOVE TAB -->
   <div id="move-content" class="content active">
-    <div id="status-bar" class="status-bar" style="display:none;"></div>
+    <div id="success-message" class="success-message"></div>
 
-    <div class="building building-bravo">
-      <div class="building-header">🏢 Building B (Bravo) - 25 Bays</div>
-      <div class="bay-grid" id="bravo-bays"></div>
+    <div class="move-form">
+      <div class="form-group">
+        <label for="from-select">📦 From:</label>
+        <select id="from-select">
+          <option value="">-- Select Bay --</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="to-select">📍 To:</label>
+        <select id="to-select">
+          <option value="">-- Select Bay --</option>
+        </select>
+      </div>
+
+      <button class="move-button" onclick="submitMove()">Move Container</button>
     </div>
 
-    <div class="building building-charlie">
-      <div class="building-header">🏢 Building C (Charlie) - 26 Bays</div>
-      <div class="bay-grid" id="charlie-bays"></div>
-    </div>
-
-    <div class="yard-section">
-      <div class="building-header">🅿️ Yard</div>
-      <div class="yard-button" id="yard-button">YARD</div>
+    <div class="bay-reference">
+      <div class="bay-section">
+        <h3>🏢 Building B (Bravo) - 25 Bays</h3>
+        <div class="bay-list" id="bravo-list"></div>
+      </div>
+      <div class="bay-section">
+        <h3>🏢 Building C (Charlie) - 26 Bays</h3>
+        <div class="bay-list" id="charlie-list"></div>
+      </div>
     </div>
   </div>
 
@@ -187,18 +223,6 @@ h1 { color: #667eea; font-size: 32px; font-weight: bold; text-align: center; }
 
 <script>
 let movements = [];
-let dragState = {
-  element: null,
-  ghost: null,
-  dropTarget: null,
-  offsetX: 0,
-  offsetY: 0,
-  scrollInterval: null,
-  longPressTimer: null,
-  isDragging: false,
-  startX: 0,
-  startY: 0
-};
 
 const bayGroups = {
   'B1':'ANDREE','B2':'ANDREE','B3':'ANDREE','B4':'ANDREE','B5':'ANDREE','B6':'ANDREE','B7':'ANDREE','B8':'ANDREE','B9':'ANDREE','B10':'ANDREE','B11':'ANDREE','B12':'ANDREE',
@@ -213,328 +237,87 @@ const bayGroups = {
 
 const bravoBays = Array.from({length:25}, (_,i)=>'B'+(i+1));
 const charlieBays = Array.from({length:26}, (_,i)=>'C'+(i+1));
+const allBays = [...bravoBays, ...charlieBays, 'Yard'];
 
-// Auto-scroll when dragging near edges
-function autoScroll(clientY) {
-  const scrollThreshold = 80;
-  const scrollSpeed = 15;
-  const viewportHeight = window.innerHeight;
+// Initialize dropdowns
+function initDropdowns() {
+  const fromSelect = document.getElementById('from-select');
+  const toSelect = document.getElementById('to-select');
   
-  if (dragState.scrollInterval) {
-    clearInterval(dragState.scrollInterval);
-    dragState.scrollInterval = null;
-  }
-  
-  if (clientY < scrollThreshold) {
-    // Near top - scroll up
-    dragState.scrollInterval = setInterval(() => {
-      window.scrollBy(0, -scrollSpeed);
-    }, 16);
-  } else if (clientY > viewportHeight - scrollThreshold) {
-    // Near bottom - scroll down
-    dragState.scrollInterval = setInterval(() => {
-      window.scrollBy(0, scrollSpeed);
-    }, 16);
-  }
+  // Populate dropdowns
+  allBays.forEach(bay => {
+    const fromOption = document.createElement('option');
+    fromOption.value = bay;
+    fromOption.textContent = bay + (bayGroups[bay] ? ` (${bayGroups[bay]})` : '');
+    fromSelect.appendChild(fromOption);
+    
+    const toOption = document.createElement('option');
+    toOption.value = bay;
+    toOption.textContent = bay + (bayGroups[bay] ? ` (${bayGroups[bay]})` : '');
+    toSelect.appendChild(toOption);
+  });
 }
 
-function stopAutoScroll() {
-  if (dragState.scrollInterval) {
-    clearInterval(dragState.scrollInterval);
-    dragState.scrollInterval = null;
-  }
+// Initialize bay reference display
+function initBayReference() {
+  const bravoList = document.getElementById('bravo-list');
+  const charlieList = document.getElementById('charlie-list');
+  
+  bravoBays.forEach(bay => {
+    const chip = document.createElement('div');
+    chip.className = 'bay-chip';
+    chip.textContent = `${bay} - ${bayGroups[bay]}`;
+    bravoList.appendChild(chip);
+  });
+  
+  charlieBays.forEach(bay => {
+    const chip = document.createElement('div');
+    chip.className = 'bay-chip';
+    chip.textContent = `${bay} - ${bayGroups[bay]}`;
+    charlieList.appendChild(chip);
+  });
 }
 
-function handleDragStart(element, clientX, clientY, bayName) {
-  const rect = element.getBoundingClientRect();
-  dragState.element = element;
-  dragState.offsetX = clientX - rect.left;
-  dragState.offsetY = clientY - rect.top;
+// Submit move
+function submitMove() {
+  const fromSelect = document.getElementById('from-select');
+  const toSelect = document.getElementById('to-select');
+  const successMsg = document.getElementById('success-message');
   
-  // Create ghost element
-  const ghost = element.cloneNode(true);
-  ghost.className = element.className + ' drag-ghost';
-  ghost.style.width = rect.width + 'px';
-  ghost.style.height = rect.height + 'px';
-  ghost.style.left = (clientX - dragState.offsetX) + 'px';
-  ghost.style.top = (clientY - dragState.offsetY) + 'px';
-  document.body.appendChild(ghost);
-  dragState.ghost = ghost;
+  const from = fromSelect.value;
+  const to = toSelect.value;
   
-  element.classList.add('dragging');
-  document.getElementById('status-bar').style.display='block';
-  document.getElementById('status-bar').textContent=`Dragging ${bayName}`;
-}
-
-function handleDragMove(clientX, clientY) {
-  if (!dragState.isDragging) return;
-  if (!dragState.ghost) return;
-  
-  // Update ghost position
-  dragState.ghost.style.left = (clientX - dragState.offsetX) + 'px';
-  dragState.ghost.style.top = (clientY - dragState.offsetY) + 'px';
-  
-  // Auto-scroll
-  autoScroll(clientY);
-  
-  // Find drop target
-  const elements = document.elementsFromPoint(clientX, clientY);
-  let newDropTarget = null;
-  
-  for (let el of elements) {
-    if (el.classList.contains('bay') && el !== dragState.element) {
-      newDropTarget = el;
-      break;
-    }
-    if (el.id === 'yard-button' && dragState.element.id !== 'yard-button') {
-      newDropTarget = el;
-      break;
-    }
+  if (!from || !to) {
+    alert('Please select both FROM and TO locations');
+    return;
   }
   
-  // Update drop target highlight
-  if (dragState.dropTarget !== newDropTarget) {
-    if (dragState.dropTarget) {
-      dragState.dropTarget.classList.remove('drag-over');
-    }
-    dragState.dropTarget = newDropTarget;
-    if (dragState.dropTarget) {
-      dragState.dropTarget.classList.add('drag-over');
-    }
-  }
-}
-
-function handleDragEnd() {
-  stopAutoScroll();
-  
-  // Clear long press timer if it exists
-  if (dragState.longPressTimer) {
-    clearTimeout(dragState.longPressTimer);
+  if (from === to) {
+    alert('FROM and TO cannot be the same');
+    return;
   }
   
-  if (dragState.ghost) {
-    dragState.ghost.remove();
-  }
-  
-  if (dragState.element) {
-    dragState.element.classList.remove('dragging');
-  }
-  
-  if (dragState.dropTarget && dragState.isDragging) {
-    dragState.dropTarget.classList.remove('drag-over');
-    
-    const fromId = dragState.element.id;
-    const toId = dragState.dropTarget.id;
-    
-    if (fromId !== toId) {
-      movements.unshift({
-        from: fromId.replace('bay-',''),
-        to: toId.replace('bay-','').replace('yard-button', 'Yard'),
-        time: new Date(),
-        done: false
-      });
-      document.getElementById('status-bar').textContent=`Moved ${fromId.replace('bay-','')} → ${toId.replace('bay-','').replace('yard-button','Yard')}`;
-      loadHistory();
-    }
-  }
-  
-  dragState = {
-    element: null,
-    ghost: null,
-    dropTarget: null,
-    offsetX: 0,
-    offsetY: 0,
-    scrollInterval: null,
-    longPressTimer: null,
-    isDragging: false,
-    startX: 0,
-    startY: 0
-  };
-}
-
-function createBayEl(bay){
-  const bayEl = document.createElement('div');
-  bayEl.className = 'bay';
-  bayEl.id = `bay-${bay}`;
-  const numberDiv = document.createElement('div');
-  numberDiv.textContent = bay;
-  const groupDiv = document.createElement('div');
-  groupDiv.style.fontSize='14px';
-  groupDiv.style.marginTop='5px';
-  groupDiv.textContent = bayGroups[bay] || '';
-  bayEl.appendChild(numberDiv);
-  bayEl.appendChild(groupDiv);
-
-  // Desktop drag events
-  bayEl.setAttribute('draggable', true);
-  bayEl.addEventListener('dragstart', e=>{
-    e.dataTransfer.setData('text/plain', bayEl.id);
-    document.getElementById('status-bar').style.display='block';
-    document.getElementById('status-bar').textContent=`Dragging ${bay}`;
-  });
-  bayEl.addEventListener('dragover', e=>e.preventDefault());
-  bayEl.addEventListener('dragenter', ()=>bayEl.classList.add('drag-over'));
-  bayEl.addEventListener('dragleave', ()=>bayEl.classList.remove('drag-over'));
-  bayEl.addEventListener('drop', e=>{
-    e.preventDefault();
-    bayEl.classList.remove('drag-over');
-    const fromId = e.dataTransfer.getData('text/plain');
-    const toId = bayEl.id;
-    if(fromId === toId) return;
-    movements.unshift({
-      from: fromId.replace('bay-',''),
-      to: toId.replace('bay-',''),
-      time: new Date(),
-      done: false
-    });
-    document.getElementById('status-bar').textContent=`Moved ${fromId.replace('bay-','')} → ${toId.replace('bay-','')}`;
-    loadHistory();
+  // Add movement
+  movements.unshift({
+    from: from,
+    to: to,
+    time: new Date(),
+    done: false
   });
   
-  // Touch events for mobile
-  bayEl.addEventListener('touchstart', e => {
-    const touch = e.touches[0];
-    dragState.startX = touch.clientX;
-    dragState.startY = touch.clientY;
-    dragState.element = bayEl;
-    
-    // Start long press timer (500ms)
-    dragState.longPressTimer = setTimeout(() => {
-      // Long press detected - start drag
-      e.preventDefault();
-      dragState.isDragging = true;
-      handleDragStart(bayEl, touch.clientX, touch.clientY, bay);
-      
-      // Add haptic feedback if available
-      if (navigator.vibrate) {
-        navigator.vibrate(50);
-      }
-    }, 500);
-  });
+  // Show success message
+  successMsg.textContent = `✅ Moved ${from} → ${to}`;
+  successMsg.style.display = 'block';
+  setTimeout(() => {
+    successMsg.style.display = 'none';
+  }, 3000);
   
-  bayEl.addEventListener('touchmove', e => {
-    if (!dragState.isDragging) {
-      // Check if user moved too much (scrolling intent)
-      const touch = e.touches[0];
-      const moveX = Math.abs(touch.clientX - dragState.startX);
-      const moveY = Math.abs(touch.clientY - dragState.startY);
-      
-      if (moveX > 10 || moveY > 10) {
-        // User is scrolling, cancel the long press
-        if (dragState.longPressTimer) {
-          clearTimeout(dragState.longPressTimer);
-          dragState.longPressTimer = null;
-        }
-      }
-      return; // Allow normal scrolling
-    }
-    
-    // We're dragging - prevent scrolling and handle drag
-    e.preventDefault();
-    const touch = e.touches[0];
-    handleDragMove(touch.clientX, touch.clientY);
-  });
+  // Reset dropdowns
+  fromSelect.value = '';
+  toSelect.value = '';
   
-  bayEl.addEventListener('touchend', e => {
-    if (dragState.isDragging) {
-      e.preventDefault();
-    }
-    handleDragEnd();
-  });
-  
-  bayEl.addEventListener('touchcancel', e => {
-    handleDragEnd();
-  });
-  
-  return bayEl;
-}
-
-function initBays(){
-  const bravoBaysEl = document.getElementById('bravo-bays');
-  const charlieBaysEl = document.getElementById('charlie-bays');
-  bravoBays.forEach(bay => bravoBaysEl.appendChild(createBayEl(bay)));
-  charlieBays.forEach(bay => charlieBaysEl.appendChild(createBayEl(bay)));
-
-  const yardBtn = document.getElementById('yard-button');
-  
-  // Desktop drag events
-  yardBtn.addEventListener('dragover', e=>e.preventDefault());
-  yardBtn.addEventListener('dragenter', ()=>yardBtn.classList.add('drag-over'));
-  yardBtn.addEventListener('dragleave', ()=>yardBtn.classList.remove('drag-over'));
-  yardBtn.addEventListener('drop', e=>{
-    e.preventDefault();
-    yardBtn.classList.remove('drag-over');
-    const fromId = e.dataTransfer.getData('text/plain');
-    if(fromId==='yard-button') return;
-    movements.unshift({
-      from: fromId.replace('bay-',''),
-      to: 'Yard',
-      time: new Date(),
-      done: false
-    });
-    document.getElementById('status-bar').textContent=`Moved ${fromId.replace('bay-','')} → Yard`;
-    loadHistory();
-  });
-  yardBtn.setAttribute('draggable', true);
-  yardBtn.addEventListener('dragstart', e=>{
-    e.dataTransfer.setData('text/plain','yard-button');
-    document.getElementById('status-bar').textContent=`Dragging Yard`;
-  });
-  
-  // Touch events for mobile
-  yardBtn.addEventListener('touchstart', e => {
-    const touch = e.touches[0];
-    dragState.startX = touch.clientX;
-    dragState.startY = touch.clientY;
-    dragState.element = yardBtn;
-    
-    // Start long press timer (500ms)
-    dragState.longPressTimer = setTimeout(() => {
-      // Long press detected - start drag
-      e.preventDefault();
-      dragState.isDragging = true;
-      handleDragStart(yardBtn, touch.clientX, touch.clientY, 'Yard');
-      
-      // Add haptic feedback if available
-      if (navigator.vibrate) {
-        navigator.vibrate(50);
-      }
-    }, 500);
-  });
-  
-  yardBtn.addEventListener('touchmove', e => {
-    if (!dragState.isDragging) {
-      // Check if user moved too much (scrolling intent)
-      const touch = e.touches[0];
-      const moveX = Math.abs(touch.clientX - dragState.startX);
-      const moveY = Math.abs(touch.clientY - dragState.startY);
-      
-      if (moveX > 10 || moveY > 10) {
-        // User is scrolling, cancel the long press
-        if (dragState.longPressTimer) {
-          clearTimeout(dragState.longPressTimer);
-          dragState.longPressTimer = null;
-        }
-      }
-      return; // Allow normal scrolling
-    }
-    
-    // We're dragging - prevent scrolling and handle drag
-    e.preventDefault();
-    const touch = e.touches[0];
-    handleDragMove(touch.clientX, touch.clientY);
-  });
-  
-  yardBtn.addEventListener('touchend', e => {
-    if (dragState.isDragging) {
-      e.preventDefault();
-    }
-    handleDragEnd();
-  });
-  
-  yardBtn.addEventListener('touchcancel', e => {
-    handleDragEnd();
-  });
+  // Update history
+  loadHistory();
 }
 
 function loadHistory(){
@@ -566,7 +349,8 @@ function switchTab(tab,event){
 }
 
 // Initialize
-initBays();
+initDropdowns();
+initBayReference();
 loadHistory();
 </script>
 </body>
