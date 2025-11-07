@@ -109,8 +109,34 @@ h1 { color: #667eea; font-size: 32px; font-weight: bold; text-align: center; }
 .dashboard-table tr:hover { background: #f9fafb; }
 .done-row { background: #d1fae5; color: #065f46; font-weight: bold; }
 .done-row button { display: none; }
+.bay.dragging { opacity: 0.5; transform: scale(1.05); z-index: 1000; }
+.drag-ghost {
+  position: fixed;
+  pointer-events: none;
+  opacity: 0.8;
+  transform: scale(1.1);
+  z-index: 10000;
+  transition: none;
+  box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+}
 @media (max-width: 768px) {
-  .bay-grid { grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 8px; }
+  .bay-grid { grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 12px; }
+  .bay { 
+    min-height: 90px; 
+    font-size: 16px;
+    touch-action: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  .building { padding: 15px; margin-bottom: 15px; }
+  .yard-button { 
+    padding: 40px; 
+    font-size: 20px;
+    touch-action: none;
+    min-height: 100px;
+  }
+  h1 { font-size: 24px; }
+  .tab { font-size: 16px; padding: 15px; }
 }
 </style>
 </head>
@@ -163,6 +189,14 @@ h1 { color: #667eea; font-size: 32px; font-weight: bold; text-align: center; }
 
 <script>
 let movements = [];
+let dragState = {
+  element: null,
+  ghost: null,
+  dropTarget: null,
+  offsetX: 0,
+  offsetY: 0,
+  scrollInterval: null
+};
 
 const bayGroups = {
   'B1':'ANDREE','B2':'ANDREE','B3':'ANDREE','B4':'ANDREE','B5':'ANDREE','B6':'ANDREE','B7':'ANDREE','B8':'ANDREE','B9':'ANDREE','B10':'ANDREE','B11':'ANDREE','B12':'ANDREE',
@@ -178,6 +212,134 @@ const bayGroups = {
 const bravoBays = Array.from({length:25}, (_,i)=>'B'+(i+1));
 const charlieBays = Array.from({length:26}, (_,i)=>'C'+(i+1));
 
+// Auto-scroll when dragging near edges
+function autoScroll(clientY) {
+  const scrollThreshold = 80;
+  const scrollSpeed = 15;
+  const viewportHeight = window.innerHeight;
+  
+  if (dragState.scrollInterval) {
+    clearInterval(dragState.scrollInterval);
+    dragState.scrollInterval = null;
+  }
+  
+  if (clientY < scrollThreshold) {
+    // Near top - scroll up
+    dragState.scrollInterval = setInterval(() => {
+      window.scrollBy(0, -scrollSpeed);
+    }, 16);
+  } else if (clientY > viewportHeight - scrollThreshold) {
+    // Near bottom - scroll down
+    dragState.scrollInterval = setInterval(() => {
+      window.scrollBy(0, scrollSpeed);
+    }, 16);
+  }
+}
+
+function stopAutoScroll() {
+  if (dragState.scrollInterval) {
+    clearInterval(dragState.scrollInterval);
+    dragState.scrollInterval = null;
+  }
+}
+
+function handleDragStart(element, clientX, clientY, bayName) {
+  const rect = element.getBoundingClientRect();
+  dragState.element = element;
+  dragState.offsetX = clientX - rect.left;
+  dragState.offsetY = clientY - rect.top;
+  
+  // Create ghost element
+  const ghost = element.cloneNode(true);
+  ghost.className = element.className + ' drag-ghost';
+  ghost.style.width = rect.width + 'px';
+  ghost.style.height = rect.height + 'px';
+  ghost.style.left = (clientX - dragState.offsetX) + 'px';
+  ghost.style.top = (clientY - dragState.offsetY) + 'px';
+  document.body.appendChild(ghost);
+  dragState.ghost = ghost;
+  
+  element.classList.add('dragging');
+  document.getElementById('status-bar').style.display='block';
+  document.getElementById('status-bar').textContent=`Dragging ${bayName}`;
+}
+
+function handleDragMove(clientX, clientY) {
+  if (!dragState.ghost) return;
+  
+  // Update ghost position
+  dragState.ghost.style.left = (clientX - dragState.offsetX) + 'px';
+  dragState.ghost.style.top = (clientY - dragState.offsetY) + 'px';
+  
+  // Auto-scroll
+  autoScroll(clientY);
+  
+  // Find drop target
+  const elements = document.elementsFromPoint(clientX, clientY);
+  let newDropTarget = null;
+  
+  for (let el of elements) {
+    if (el.classList.contains('bay') && el !== dragState.element) {
+      newDropTarget = el;
+      break;
+    }
+    if (el.id === 'yard-button' && dragState.element.id !== 'yard-button') {
+      newDropTarget = el;
+      break;
+    }
+  }
+  
+  // Update drop target highlight
+  if (dragState.dropTarget !== newDropTarget) {
+    if (dragState.dropTarget) {
+      dragState.dropTarget.classList.remove('drag-over');
+    }
+    dragState.dropTarget = newDropTarget;
+    if (dragState.dropTarget) {
+      dragState.dropTarget.classList.add('drag-over');
+    }
+  }
+}
+
+function handleDragEnd() {
+  stopAutoScroll();
+  
+  if (dragState.ghost) {
+    dragState.ghost.remove();
+  }
+  
+  if (dragState.element) {
+    dragState.element.classList.remove('dragging');
+  }
+  
+  if (dragState.dropTarget) {
+    dragState.dropTarget.classList.remove('drag-over');
+    
+    const fromId = dragState.element.id;
+    const toId = dragState.dropTarget.id;
+    
+    if (fromId !== toId) {
+      movements.unshift({
+        from: fromId.replace('bay-',''),
+        to: toId.replace('bay-','').replace('yard-button', 'Yard'),
+        time: new Date(),
+        done: false
+      });
+      document.getElementById('status-bar').textContent=`Moved ${fromId.replace('bay-','')} → ${toId.replace('bay-','').replace('yard-button','Yard')}`;
+      loadHistory();
+    }
+  }
+  
+  dragState = {
+    element: null,
+    ghost: null,
+    dropTarget: null,
+    offsetX: 0,
+    offsetY: 0,
+    scrollInterval: null
+  };
+}
+
 function createBayEl(bay){
   const bayEl = document.createElement('div');
   bayEl.className = 'bay';
@@ -191,6 +353,7 @@ function createBayEl(bay){
   bayEl.appendChild(numberDiv);
   bayEl.appendChild(groupDiv);
 
+  // Desktop drag events
   bayEl.setAttribute('draggable', true);
   bayEl.addEventListener('dragstart', e=>{
     e.dataTransfer.setData('text/plain', bayEl.id);
@@ -215,6 +378,30 @@ function createBayEl(bay){
     document.getElementById('status-bar').textContent=`Moved ${fromId.replace('bay-','')} → ${toId.replace('bay-','')}`;
     loadHistory();
   });
+  
+  // Touch events for mobile
+  bayEl.addEventListener('touchstart', e => {
+    e.preventDefault();
+    const touch = e.touches[0];
+    handleDragStart(bayEl, touch.clientX, touch.clientY, bay);
+  });
+  
+  bayEl.addEventListener('touchmove', e => {
+    e.preventDefault();
+    const touch = e.touches[0];
+    handleDragMove(touch.clientX, touch.clientY);
+  });
+  
+  bayEl.addEventListener('touchend', e => {
+    e.preventDefault();
+    handleDragEnd();
+  });
+  
+  bayEl.addEventListener('touchcancel', e => {
+    e.preventDefault();
+    handleDragEnd();
+  });
+  
   return bayEl;
 }
 
@@ -225,6 +412,8 @@ function initBays(){
   charlieBays.forEach(bay => charlieBaysEl.appendChild(createBayEl(bay)));
 
   const yardBtn = document.getElementById('yard-button');
+  
+  // Desktop drag events
   yardBtn.addEventListener('dragover', e=>e.preventDefault());
   yardBtn.addEventListener('dragenter', ()=>yardBtn.classList.add('drag-over'));
   yardBtn.addEventListener('dragleave', ()=>yardBtn.classList.remove('drag-over'));
@@ -246,6 +435,29 @@ function initBays(){
   yardBtn.addEventListener('dragstart', e=>{
     e.dataTransfer.setData('text/plain','yard-button');
     document.getElementById('status-bar').textContent=`Dragging Yard`;
+  });
+  
+  // Touch events for mobile
+  yardBtn.addEventListener('touchstart', e => {
+    e.preventDefault();
+    const touch = e.touches[0];
+    handleDragStart(yardBtn, touch.clientX, touch.clientY, 'Yard');
+  });
+  
+  yardBtn.addEventListener('touchmove', e => {
+    e.preventDefault();
+    const touch = e.touches[0];
+    handleDragMove(touch.clientX, touch.clientY);
+  });
+  
+  yardBtn.addEventListener('touchend', e => {
+    e.preventDefault();
+    handleDragEnd();
+  });
+  
+  yardBtn.addEventListener('touchcancel', e => {
+    e.preventDefault();
+    handleDragEnd();
   });
 }
 
