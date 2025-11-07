@@ -49,9 +49,7 @@ h1 { color: #667eea; font-size: 32px; font-weight: bold; text-align: center; }
   box-shadow: 0 4px 6px rgba(0,0,0,0.1);
   margin-bottom: 20px;
 }
-.form-group {
-  margin-bottom: 20px;
-}
+.form-group { margin-bottom: 20px; }
 .form-group label {
   display: block;
   font-size: 18px;
@@ -59,17 +57,18 @@ h1 { color: #667eea; font-size: 32px; font-weight: bold; text-align: center; }
   color: #1f2937;
   margin-bottom: 8px;
 }
-.form-group select {
+.form-group select,
+.form-group input {
   width: 100%;
   padding: 15px;
   font-size: 18px;
   border: 2px solid #e5e7eb;
   border-radius: 10px;
   background: white;
-  cursor: pointer;
   transition: border-color 0.3s;
 }
-.form-group select:focus {
+.form-group select:focus,
+.form-group input:focus {
   outline: none;
   border-color: #667eea;
 }
@@ -91,9 +90,7 @@ h1 { color: #667eea; font-size: 32px; font-weight: bold; text-align: center; }
   transform: translateY(-2px);
   box-shadow: 0 6px 12px rgba(0,0,0,0.15);
 }
-.move-button:active {
-  transform: translateY(0);
-}
+.move-button:active { transform: translateY(0); }
 .move-button:disabled {
   background: #9ca3af;
   cursor: not-allowed;
@@ -106,9 +103,7 @@ h1 { color: #667eea; font-size: 32px; font-weight: bold; text-align: center; }
   box-shadow: 0 4px 6px rgba(0,0,0,0.1);
   margin-bottom: 20px;
 }
-.bay-section {
-  margin-bottom: 15px;
-}
+.bay-section { margin-bottom: 15px; }
 .bay-section h3 {
   font-size: 18px;
   font-weight: bold;
@@ -140,19 +135,38 @@ h1 { color: #667eea; font-size: 32px; font-weight: bold; text-align: center; }
   text-align: center;
   display: none;
 }
-.dashboard-table { width: 100%; background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-.dashboard-table table { width: 100%; border-collapse: collapse; }
-.dashboard-table th { background: #667eea; color: white; padding: 15px; text-align: left; font-size: 16px; }
-.dashboard-table td { padding: 12px 15px; border-bottom: 1px solid #e5e7eb; font-size: 16px; }
+.dashboard-table {
+  width: 100%;
+  background: white;
+  border-radius: 15px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+.dashboard-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.dashboard-table th {
+  background: #667eea;
+  color: white;
+  padding: 15px;
+  text-align: left;
+  font-size: 16px;
+}
+.dashboard-table td {
+  padding: 12px 15px;
+  border-bottom: 1px solid #e5e7eb;
+  font-size: 16px;
+}
 .dashboard-table tr:last-child td { border-bottom: none; }
 .dashboard-table tr:hover { background: #f9fafb; }
 .done-row { background: #3d3d3d; color: #353535; font-weight: bold; }
 .done-row button { display: none; }
 @media (max-width: 768px) {
   h1 { font-size: 24px; }
-  .tab { font-size: 16px; padding: 15px; }d
+  .tab { font-size: 16px; padding: 15px; }
   .form-group label { font-size: 16px; }
-  .form-group select { font-size: 16px; padding: 12px; }
+  .form-group select, .form-group input { font-size: 16px; padding: 12px; }
   .move-button { font-size: 18px; padding: 18px; }
   .bay-reference { padding: 15px; }
   .dashboard-table th { font-size: 14px; padding: 12px; }
@@ -188,6 +202,11 @@ h1 { color: #667eea; font-size: 32px; font-weight: bold; text-align: center; }
         </select>
       </div>
 
+      <div class="form-group">
+        <label for="trailer-input">🚚 Trailer Number:</label>
+        <input id="trailer-input" type="text" placeholder="Enter trailer ID (e.g. AB12XYZ)" maxlength="12">
+      </div>
+
       <button class="move-button" onclick="submitMove()">Move Trailer</button>
     </div>
 
@@ -209,6 +228,7 @@ h1 { color: #667eea; font-size: 32px; font-weight: bold; text-align: center; }
       <table>
         <thead>
           <tr>
+            <th>Trailer</th>
             <th>From</th>
             <th>To</th>
             <th>Time</th>
@@ -244,7 +264,6 @@ function initDropdowns() {
   const fromSelect = document.getElementById('from-select');
   const toSelect = document.getElementById('to-select');
   
-  // Populate dropdowns
   allBays.forEach(bay => {
     const fromOption = document.createElement('option');
     fromOption.value = bay;
@@ -282,41 +301,42 @@ function initBayReference() {
 function submitMove() {
   const fromSelect = document.getElementById('from-select');
   const toSelect = document.getElementById('to-select');
+  const trailerInput = document.getElementById('trailer-input');
   const successMsg = document.getElementById('success-message');
   
   const from = fromSelect.value;
   const to = toSelect.value;
+  const trailer = trailerInput.value.trim();
   
   if (!from || !to) {
     alert('Please select both FROM and TO locations');
     return;
   }
-  
   if (from === to) {
     alert('FROM and TO cannot be the same');
     return;
   }
+  if (!trailer) {
+    alert('Please enter the trailer number');
+    return;
+  }
   
-  // Add movement
   movements.unshift({
     from: from,
     to: to,
+    trailer: trailer,
     time: new Date(),
     done: false
   });
   
-  // Show success message
-  successMsg.textContent = `✅ Moved ${from} → ${to}`;
+  successMsg.textContent = `✅ Trailer ${trailer} moved from ${from} → ${to}`;
   successMsg.style.display = 'block';
-  setTimeout(() => {
-    successMsg.style.display = 'none';
-  }, 3000);
+  setTimeout(() => { successMsg.style.display = 'none'; }, 3000);
   
-  // Reset dropdowns
   fromSelect.value = '';
   toSelect.value = '';
+  trailerInput.value = '';
   
-  // Update history
   loadHistory();
 }
 
@@ -326,6 +346,7 @@ function loadHistory(){
   movements.slice(0,50).forEach((m,index)=>{
     const time = m.time.toLocaleString('en-GB',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
     hb.innerHTML += `<tr data-index="${index}" class="${m.done?'done-row':''}">
+      <td>${m.trailer || '-'}</td>
       <td>${m.from}</td>
       <td>${m.to}</td>
       <td>${time}</td>
@@ -333,7 +354,7 @@ function loadHistory(){
     </tr>`;
   });
   if(movements.length===0)
-    hb.innerHTML='<tr><td colspan="4" style="text-align:center; color:#9ca3af;">No moves yet</td></tr>';
+    hb.innerHTML='<tr><td colspan="5" style="text-align:center; color:#9ca3af;">No moves yet</td></tr>';
 }
 
 function markDone(index){
