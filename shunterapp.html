@@ -203,11 +203,11 @@ h1 { color: #667eea; font-size: 32px; font-weight: bold; text-align: center; }
       </div>
 
       <div class="form-group">
-        <label for="trailer-input">🚚 Trailer Number:</label>
-        <input id="trailer-input" type="text" placeholder="Enter trailer ID (e.g. AB12XYZ)" maxlength="12">
+        <label for="trailer-input">🚚 Trailer Number (optional):</label>
+        <input id="trailer-input" type="text" placeholder="Enter trailer ID (optional)" maxlength="12">
       </div>
 
-      <button class="move-button" onclick="submitMove()">Move Trailer</button>
+      <button class="move-button" onclick="submitMove()">Move Container</button>
     </div>
 
     <div class="bay-reference">
@@ -243,6 +243,22 @@ h1 { color: #667eea; font-size: 32px; font-weight: bold; text-align: center; }
 
 <script>
 let movements = [];
+
+// Load saved data from localStorage
+function loadData() {
+  const saved = localStorage.getItem('shunterMovements');
+  if (saved) {
+    movements = JSON.parse(saved).map(m => ({
+      ...m,
+      time: new Date(m.time)
+    }));
+  }
+}
+
+// Save data to localStorage
+function saveData() {
+  localStorage.setItem('shunterMovements', JSON.stringify(movements));
+}
 
 const bayGroups = {
   'B1':'ANDREE','B2':'ANDREE','B3':'ANDREE','B4':'ANDREE','B5':'ANDREE','B6':'ANDREE','B7':'ANDREE','B8':'ANDREE','B9':'ANDREE','B10':'ANDREE','B11':'ANDREE','B12':'ANDREE',
@@ -317,21 +333,19 @@ function submitMove() {
     return;
   }
 
-  // Add movement (trailer can be blank)
   movements.unshift({
     from: from,
     to: to,
-    trailer: trailer || '-',  // store '-' if empty
+    trailer: trailer || '-',
     time: new Date(),
     done: false
   });
+
+  saveData();
   
-  // Show success message
-  if (trailer) {
-    successMsg.textContent = `✅ Trailer ${trailer} moved from ${from} → ${to}`;
-  } else {
-    successMsg.textContent = `✅ Moved ${from} → ${to}`;
-  }
+  successMsg.textContent = trailer
+    ? `✅ Trailer ${trailer} moved from ${from} → ${to}`
+    : `✅ Moved ${from} → ${to}`;
   successMsg.style.display = 'block';
   setTimeout(() => { successMsg.style.display = 'none'; }, 3000);
   
@@ -342,12 +356,11 @@ function submitMove() {
   loadHistory();
 }
 
-
 function loadHistory(){
   const hb = document.getElementById('history-body');
   hb.innerHTML='';
   movements.slice(0,50).forEach((m,index)=>{
-    const time = m.time.toLocaleString('en-GB',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+    const time = new Date(m.time).toLocaleString('en-GB',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
     hb.innerHTML += `<tr data-index="${index}" class="${m.done?'done-row':''}">
       <td>${m.trailer || '-'}</td>
       <td>${m.from}</td>
@@ -362,6 +375,7 @@ function loadHistory(){
 
 function markDone(index){
   movements[index].done = true;
+  saveData();
   loadHistory();
 }
 
@@ -373,9 +387,11 @@ function switchTab(tab,event){
 }
 
 // Initialize
+loadData();
 initDropdowns();
 initBayReference();
 loadHistory();
 </script>
 </body>
 </html>
+
