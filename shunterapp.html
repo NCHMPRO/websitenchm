@@ -13,6 +13,76 @@ body {
   padding: 15px;
 }
 .container { max-width: 1400px; margin: 0 auto; }
+
+/* Login Screen Styles */
+.login-screen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+}
+.login-box {
+  background: white;
+  padding: 40px;
+  border-radius: 20px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+  max-width: 400px;
+  width: 100%;
+}
+.login-box h1 {
+  color: #667eea;
+  font-size: 32px;
+  text-align: center;
+  margin-bottom: 10px;
+}
+.login-box p {
+  text-align: center;
+  color: #6b7280;
+  margin-bottom: 30px;
+  font-size: 16px;
+}
+.login-form input {
+  width: 100%;
+  padding: 15px;
+  font-size: 18px;
+  border: 2px solid #e5e7eb;
+  border-radius: 10px;
+  margin-bottom: 15px;
+  transition: border-color 0.3s;
+}
+.login-form input:focus {
+  outline: none;
+  border-color: #667eea;
+}
+.login-form button {
+  width: 100%;
+  padding: 15px;
+  background: #667eea;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+.login-form button:hover {
+  background: #5568d3;
+  transform: translateY(-2px);
+}
+.error-message {
+  background: #fee2e2;
+  color: #991b1b;
+  padding: 10px 15px;
+  border-radius: 8px;
+  margin-bottom: 15px;
+  font-size: 14px;
+  text-align: center;
+  display: none;
+}
+
+/* Main App Styles */
+.main-app { display: none; }
 header {
   background: white;
   padding: 20px;
@@ -175,94 +245,129 @@ h1 { color: #667eea; font-size: 32px; font-weight: bold; text-align: center; }
 </style>
 </head>
 <body>
-<div class="container">
-  <header><h1>🚛 Shunter App</h1></header>
 
-  <div class="tabs">
-    <button class="tab active" onclick="switchTab('move', event)">Move Bays</button>
-    <button class="tab" onclick="switchTab('history', event)">History</button>
-  </div>
-
-  <!-- MOVE TAB -->
-  <div id="move-content" class="content active">
-    <div id="success-message" class="success-message"></div>
-
-    <div class="move-form">
-      <div class="form-group">
-        <label for="from-select">📦 From:</label>
-        <select id="from-select">
-          <option value="">-- Select Bay --</option>
-        </select>
-      </div>
-
-      <div class="form-group">
-        <label for="to-select">📍 To:</label>
-        <select id="to-select">
-          <option value="">-- Select Bay --</option>
-        </select>
-      </div>
-
-      <div class="form-group">
-        <label for="trailer-input">🚚 Trailer Number (optional):</label>
-        <input id="trailer-input" type="text" placeholder="Enter trailer ID (optional)" maxlength="12">
-      </div>
-
-      <button class="move-button" onclick="submitMove()">Move~Trailer</button>
-    </div>
-
-    <div class="bay-reference">
-      <div class="bay-section">
-        <h3>🏢 Building B (Bravo) - 25 Bays</h3>
-        <div class="bay-list" id="bravo-list"></div>
-      </div>
-      <div class="bay-section">
-        <h3>🏢 Building C (Charlie) - 26 Bays</h3>
-        <div class="bay-list" id="charlie-list"></div>
-      </div>
+<!-- Login Screen -->
+<div id="login-screen" class="login-screen">
+  <div class="login-box">
+    <h1>🚛 Shunter App</h1>
+    <p>Please enter password to continue</p>
+    <div class="login-form">
+      <div id="error-message" class="error-message">Incorrect password. Please try again.</div>
+      <input type="password" id="password-input" placeholder="Enter password" autocomplete="off">
+      <button onclick="checkPassword()">Login</button>
     </div>
   </div>
+</div>
 
-  <!-- HISTORY TAB -->
-  <div id="history-content" class="content">
-    <div class="dashboard-table">
-      <table>
-        <thead>
-          <tr>
-            <th>Trailer</th>
-            <th>From</th>
-            <th>To</th>
-            <th>Time</th>
-            <th>Done</th>
-          </tr>
-        </thead>
-        <tbody id="history-body"></tbody>
-      </table>
+<!-- Main App -->
+<div id="main-app" class="main-app">
+  <div class="container">
+    <header><h1>🚛 Shunter App</h1></header>
+
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('move', event)">Move Bays</button>
+      <button class="tab" onclick="switchTab('history', event)">History</button>
+    </div>
+
+    <!-- MOVE TAB -->
+    <div id="move-content" class="content active">
+      <div id="success-message" class="success-message"></div>
+
+      <div class="move-form">
+        <div class="form-group">
+          <label for="from-select">📦 From:</label>
+          <select id="from-select">
+            <option value="">-- Select Bay --</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="to-select">📍 To:</label>
+          <select id="to-select">
+            <option value="">-- Select Bay --</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="trailer-input">🚚 Trailer Number (optional):</label>
+          <input id="trailer-input" type="text" placeholder="Enter trailer ID (optional)" maxlength="12">
+        </div>
+
+        <button class="move-button" onclick="submitMove()">Move the~Trailer</button>
+      </div>
+
+      <div class="bay-reference">
+        <div class="bay-section">
+          <h3>🏢 Building B (Bravo) - 25 Bays</h3>
+          <div class="bay-list" id="bravo-list"></div>
+        </div>
+        <div class="bay-section">
+          <h3>🏢 Building C (Charlie) - 26 Bays</h3>
+          <div class="bay-list" id="charlie-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- HISTORY TAB -->
+    <div id="history-content" class="content">
+      <div class="dashboard-table">
+        <table>
+          <thead>
+            <tr>
+              <th>Trailer</th>
+              <th>From</th>
+              <th>To</th>
+              <th>Time</th>
+              <th>Done</th>
+            </tr>
+          </thead>
+          <tbody id="history-body"></tbody>
+        </table>
+      </div>
     </div>
   </div>
 </div>
 
 <script>
-let movements = [];
-
-// Get today's date (format YYYY-MM-DD)
-function getToday() {
-  const d = new Date();
-  return d.getFullYear() + '-' + (d.getMonth()+1) + '-' + d.getDate();
+// Password Protection
+function checkPassword() {
+  const passwordInput = document.getElementById('password-input');
+  const errorMessage = document.getElementById('error-message');
+  const loginScreen = document.getElementById('login-screen');
+  const mainApp = document.getElementById('main-app');
+  
+  if (passwordInput.value === 'Tug123') {
+    // Save login state
+    sessionStorage.setItem('shunterLoggedIn', 'true');
+    // Show main app
+    loginScreen.style.display = 'none';
+    mainApp.style.display = 'block';
+  } else {
+    errorMessage.style.display = 'block';
+    passwordInput.value = '';
+    passwordInput.focus();
+  }
 }
 
-// Load saved data
-function loadData() {
-  const savedDate = localStorage.getItem('shunterDate');
-  const today = getToday();
-
-  if (savedDate !== today) {
-    // New day → clear everything
-    localStorage.removeItem('shunterMovements');
-    localStorage.setItem('shunterDate', today);
-    movements = [];
-    return;
+// Check if already logged in
+function checkLoginState() {
+  if (sessionStorage.getItem('shunterLoggedIn') === 'true') {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('main-app').style.display = 'block';
   }
+}
 
+// Allow Enter key to submit password
+document.getElementById('password-input')?.addEventListener('keypress', function(e) {
+  if (e.key === 'Enter') {
+    checkPassword();
+  }
+});
+
+// Main App Code
+let movements = [];
+
+function loadData() {
   const saved = localStorage.getItem('shunterMovements');
   if (saved) {
     movements = JSON.parse(saved).map(m => ({
@@ -272,10 +377,8 @@ function loadData() {
   }
 }
 
-// Save data
 function saveData() {
   localStorage.setItem('shunterMovements', JSON.stringify(movements));
-  localStorage.setItem('shunterDate', getToday());
 }
 
 const bayGroups = {
@@ -283,7 +386,7 @@ const bayGroups = {
   'B13':'ADORJAN','B14':'ADORJAN','B15':'ADORJAN','B16':'ADORJAN','B17':'ADORJAN',
   'B18':'MARK','B19':'MARK','B20':'MARK','B21':'MARK','B22':'MARK','B23':'MARK','B24':'MARK','B25':'MARK',
   'C1':'ASDA','C2':'ASDA','C3':'ASDA','C4':'ASDA','C5':'ASDA',
-  'C6':'CAOLLECTION','C7':'CAOLLECTION','C8':'CAOLLECTION','C9':'CAOLLECTION',
+  'C6':'COLLECTION','C7':'COLLECTION','C8':'COLLECTION','C9':'COLLECTION',
   'C10':'MORRISONS','C11':'MORRISONS','C12':'MORRISONS','C13':'MORRISONS',
   'C14':'TESCO','C15':'TESCO','C16':'TESCO','C17':'TESCO','C18':'TESCO','C19':'TESCO','C20':'TESCO','C21':'TESCO','C22':'TESCO','C23':'TESCO',
   'C24':'PULING','C25':'PULING','C26':'PULING'
@@ -402,12 +505,11 @@ function switchTab(tab,event){
 }
 
 // Initialize
+checkLoginState();
 loadData();
 initDropdowns();
 initBayReference();
 loadHistory();
 </script>
-
 </body>
 </html>
-
