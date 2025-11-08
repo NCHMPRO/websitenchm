@@ -211,6 +211,7 @@ h1 { color: #667eea; font-size: 32px; font-weight: bold; text-align: center; }
   border-radius: 15px;
   overflow: hidden;
   box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  margin-bottom: 20px;
 }
 .dashboard-table table {
   width: 100%;
@@ -230,8 +231,100 @@ h1 { color: #667eea; font-size: 32px; font-weight: bold; text-align: center; }
 }
 .dashboard-table tr:last-child td { border-bottom: none; }
 .dashboard-table tr:hover { background: #f9fafb; }
-.done-row { background: #3d3d3d; color: #353535; font-weight: bold; }
+.done-row { background: #e5e7eb; color: #6b7280; }
 .done-row button { display: none; }
+
+/* Delete History Button */
+.delete-history-btn {
+  width: 100%;
+  padding: 15px;
+  background: #dc2626;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+.delete-history-btn:hover {
+  background: #b91c1c;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+}
+
+/* Modal Styles */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.5);
+  align-items: center;
+  justify-content: center;
+}
+.modal.active {
+  display: flex;
+}
+.modal-content {
+  background: white;
+  padding: 30px;
+  border-radius: 15px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+  max-width: 400px;
+  width: 90%;
+}
+.modal-content h2 {
+  color: #667eea;
+  font-size: 24px;
+  margin-bottom: 20px;
+  text-align: center;
+}
+.modal-content input {
+  width: 100%;
+  padding: 15px;
+  font-size: 18px;
+  border: 2px solid #e5e7eb;
+  border-radius: 10px;
+  margin-bottom: 15px;
+}
+.modal-content input:focus {
+  outline: none;
+  border-color: #667eea;
+}
+.modal-buttons {
+  display: flex;
+  gap: 10px;
+}
+.modal-buttons button {
+  flex: 1;
+  padding: 15px;
+  border: none;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+.modal-confirm {
+  background: #dc2626;
+  color: white;
+}
+.modal-confirm:hover {
+  background: #b91c1c;
+}
+.modal-cancel {
+  background: #e5e7eb;
+  color: #374151;
+}
+.modal-cancel:hover {
+  background: #d1d5db;
+}
+
 @media (max-width: 768px) {
   h1 { font-size: 24px; }
   .tab { font-size: 16px; padding: 15px; }
@@ -293,7 +386,7 @@ h1 { color: #667eea; font-size: 32px; font-weight: bold; text-align: center; }
           <input id="trailer-input" type="text" placeholder="Enter trailer ID (optional)" maxlength="12">
         </div>
 
-        <button class="move-button" onclick="submitMove()">Move the~Trailer</button>
+        <button class="move-button" onclick="submitMove()">Move the Trailer</button>
       </div>
 
       <div class="bay-reference">
@@ -324,6 +417,21 @@ h1 { color: #667eea; font-size: 32px; font-weight: bold; text-align: center; }
           <tbody id="history-body"></tbody>
         </table>
       </div>
+      <button class="delete-history-btn" onclick="showDeleteModal()">🗑️ Clear History</button>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div id="delete-modal" class="modal">
+  <div class="modal-content">
+    <h2>⚠️ Clear History</h2>
+    <p style="text-align: center; margin-bottom: 20px; color: #6b7280;">Enter password to delete all history</p>
+    <div id="delete-error" class="error-message">Incorrect password. Please try again.</div>
+    <input type="password" id="delete-password" placeholder="Enter delete password">
+    <div class="modal-buttons">
+      <button class="modal-cancel" onclick="closeDeleteModal()">Cancel</button>
+      <button class="modal-confirm" onclick="confirmDelete()">Delete</button>
     </div>
   </div>
 </div>
@@ -337,9 +445,7 @@ function checkPassword() {
   const mainApp = document.getElementById('main-app');
   
   if (passwordInput.value === 'Tug123') {
-    // Save login state
     sessionStorage.setItem('shunterLoggedIn', 'true');
-    // Show main app
     loginScreen.style.display = 'none';
     mainApp.style.display = 'block';
   } else {
@@ -349,7 +455,6 @@ function checkPassword() {
   }
 }
 
-// Check if already logged in
 function checkLoginState() {
   if (sessionStorage.getItem('shunterLoggedIn') === 'true') {
     document.getElementById('login-screen').style.display = 'none';
@@ -357,10 +462,70 @@ function checkLoginState() {
   }
 }
 
-// Allow Enter key to submit password
 document.getElementById('password-input')?.addEventListener('keypress', function(e) {
   if (e.key === 'Enter') {
     checkPassword();
+  }
+});
+
+// Auto-clear history at midnight
+function checkAndClearHistory() {
+  const lastClearDate = localStorage.getItem('shunterLastClear');
+  const today = new Date().toDateString();
+  
+  if (lastClearDate !== today) {
+    // New day detected - clear history
+    movements = [];
+    saveData();
+    localStorage.setItem('shunterLastClear', today);
+    console.log('History auto-cleared for new day');
+  }
+}
+
+// Delete History Modal Functions
+function showDeleteModal() {
+  const modal = document.getElementById('delete-modal');
+  const deleteError = document.getElementById('delete-error');
+  const deletePassword = document.getElementById('delete-password');
+  
+  deleteError.style.display = 'none';
+  deletePassword.value = '';
+  modal.classList.add('active');
+  deletePassword.focus();
+}
+
+function closeDeleteModal() {
+  const modal = document.getElementById('delete-modal');
+  modal.classList.remove('active');
+}
+
+function confirmDelete() {
+  const deletePassword = document.getElementById('delete-password');
+  const deleteError = document.getElementById('delete-error');
+  
+  if (deletePassword.value === 'delete123') {
+    // Clear all history
+    movements = [];
+    saveData();
+    loadHistory();
+    closeDeleteModal();
+    
+    // Show success message
+    const successMsg = document.getElementById('success-message');
+    successMsg.textContent = '✅ History cleared successfully';
+    successMsg.style.display = 'block';
+    setTimeout(() => { successMsg.style.display = 'none'; }, 3000);
+  } else {
+    deleteError.style.display = 'block';
+    deletePassword.value = '';
+    deletePassword.focus();
+  }
+}
+
+// Allow Enter key in delete modal
+document.getElementById('delete-password')?.addEventListener('keypress', function(e) {
+  if (e.key === 'Enter') {
+    confirmDelete();
   }
 });
 
@@ -506,10 +671,14 @@ function switchTab(tab,event){
 
 // Initialize
 checkLoginState();
+checkAndClearHistory(); // Check if we need to clear history for new day
 loadData();
 initDropdowns();
 initBayReference();
 loadHistory();
+
+// Check every hour if it's a new day
+setInterval(checkAndClearHistory, 3600000); // 1 hour
 </script>
 </body>
 </html>
