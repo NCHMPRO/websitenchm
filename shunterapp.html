@@ -780,6 +780,26 @@ loadHistory();
 
 // Check every hour if it's a new day
 setInterval(checkAndClearHistory, 3600000); // 1 hour
+
+  function emailHistory() {
+  if (movements.length === 0) {
+    alert('No history to email!');
+    return;
+  }
+
+  let body = '🚛 Shunter App - Movement History\n\n';
+  body += movements.map(m => {
+    const time = new Date(m.time).toLocaleString('en-GB');
+    return `${m.trailer || '-'} | ${m.from} → ${m.to} | ${time}`;
+  }).join('\n');
+
+  // Encode for email
+  const subject = encodeURIComponent('Shunter App - Daily Report');
+  const mailBody = encodeURIComponent(body);
+
+  window.location.href = `mailto:?subject=${subject}&body=${mailBody}`;
+}
+
 </script>
 </body>
 </html>
