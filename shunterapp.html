@@ -477,6 +477,25 @@ h1 { color: #667eea; font-size: 32px; font-weight: bold; text-align: center; }
         <h1>🚛 Shunter App - Daily Report</h1>
         <p id="print-date"></p>
       </div>
+      
+      <!-- Move Counter -->
+      <div style="background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 20px;">
+        <div style="display: flex; justify-content: space-around; text-align: center; flex-wrap: wrap; gap: 15px;">
+          <div style="flex: 1; min-width: 120px;">
+            <div style="font-size: 36px; font-weight: bold; color: #667eea;" id="total-moves">0</div>
+            <div style="font-size: 14px; color: #6b7280; margin-top: 5px;">Total Moves</div>
+          </div>
+          <div style="flex: 1; min-width: 120px;">
+            <div style="font-size: 36px; font-weight: bold; color: #10b981;" id="completed-moves">0</div>
+            <div style="font-size: 14px; color: #6b7280; margin-top: 5px;">Completed</div>
+          </div>
+          <div style="flex: 1; min-width: 120px;">
+            <div style="font-size: 36px; font-weight: bold; color: #f59e0b;" id="pending-moves">0</div>
+            <div style="font-size: 14px; color: #6b7280; margin-top: 5px;">Pending</div>
+          </div>
+        </div>
+      </div>
+      
       <div class="dashboard-table">
         <table>
           <thead>
@@ -740,6 +759,17 @@ function submitMove() {
 function loadHistory(){
   const hb = document.getElementById('history-body');
   hb.innerHTML='';
+  
+  // Calculate statistics
+  const totalMoves = movements.length;
+  const completedMoves = movements.filter(m => m.done).length;
+  const pendingMoves = totalMoves - completedMoves;
+  
+  // Update counters
+  document.getElementById('total-moves').textContent = totalMoves;
+  document.getElementById('completed-moves').textContent = completedMoves;
+  document.getElementById('pending-moves').textContent = pendingMoves;
+  
   movements.slice(0,50).forEach((m,index)=>{
     const time = new Date(m.time).toLocaleString('en-GB',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
     const checkboxClass = m.done ? 'checkbox-btn checked' : 'checkbox-btn';
@@ -780,26 +810,6 @@ loadHistory();
 
 // Check every hour if it's a new day
 setInterval(checkAndClearHistory, 3600000); // 1 hour
-
-  function emailHistory() {
-  if (movements.length === 0) {
-    alert('No history to email!');
-    return;
-  }
-
-  let body = '🚛 Shunter App - Movement History\n\n';
-  body += movements.map(m => {
-    const time = new Date(m.time).toLocaleString('en-GB');
-    return `${m.trailer || '-'} | ${m.from} → ${m.to} | ${time}`;
-  }).join('\n');
-
-  // Encode for email
-  const subject = encodeURIComponent('Shunter App - Daily Report');
-  const mailBody = encodeURIComponent(body);
-
-  window.location.href = `mailto:?subject=${subject}&body=${mailBody}`;
-}
-
 </script>
 </body>
 </html>
