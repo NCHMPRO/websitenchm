@@ -417,7 +417,10 @@ h1 { color: #667eea; font-size: 32px; font-weight: bold; text-align: center; }
           <tbody id="history-body"></tbody>
         </table>
       </div>
-      <button class="delete-history-btn" onclick="showDeleteModal()">🗑️ Clear History</button>
+      <div style="display: flex; gap: 10px; margin-top: 20px;">
+        <button class="delete-history-btn" style="flex: 1;" onclick="exportToCSV()">📥 Export to CSV</button>
+        <button class="delete-history-btn" style="flex: 1;" onclick="showDeleteModal()">🗑️ Clear History</button>
+      </div>
     </div>
   </div>
 </div>
@@ -480,6 +483,52 @@ function checkAndClearHistory() {
     localStorage.setItem('shunterLastClear', today);
     console.log('History auto-cleared for new day');
   }
+}
+
+// Export to CSV function
+function exportToCSV() {
+  if (movements.length === 0) {
+    alert('No history to export!');
+    return;
+  }
+
+  // Create CSV header
+  let csv = 'Trailer,From,To,Date,Time,Status\n';
+  
+  // Add each movement to CSV
+  movements.forEach(m => {
+    const date = new Date(m.time);
+    const dateStr = date.toLocaleDateString('en-GB');
+    const timeStr = date.toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit'});
+    const status = m.done ? 'Completed' : 'Pending';
+    
+    // Escape commas in trailer numbers if any
+    const trailer = (m.trailer || '-').replace(/,/g, ';');
+    
+    csv += `${trailer},${m.from},${m.to},${dateStr},${timeStr},${status}\n`;
+  });
+  
+  // Create download link
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  const url = URL.createObjectURL(blob);
+  
+  // Generate filename with current date
+  const today = new Date().toLocaleDateString('en-GB').replace(/\//g, '-');
+  const filename = `Shunter_History_${today}.csv`;
+  
+  link.setAttribute('href', url);
+  link.setAttribute('download', filename);
+  link.style.visibility = 'hidden';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  
+  // Show success message
+  const successMsg = document.getElementById('success-message');
+  successMsg.textContent = `✅ History exported to ${filename}`;
+  successMsg.style.display = 'block';
+  setTimeout(() => { successMsg.style.display = 'none'; }, 3000);
 }
 
 // Delete History Modal Functions
