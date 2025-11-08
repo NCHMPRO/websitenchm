@@ -254,6 +254,54 @@ h1 { color: #667eea; font-size: 32px; font-weight: bold; text-align: center; }
   box-shadow: 0 6px 12px rgba(0,0,0,0.15);
 }
 
+/* Print Styles */
+@media print {
+  body {
+    background: white !important;
+    padding: 0 !important;
+  }
+  .container {
+    max-width: 100% !important;
+  }
+  header, .tabs, .delete-history-btn, .move-button {
+    display: none !important;
+  }
+  .dashboard-table {
+    box-shadow: none !important;
+    border: 1px solid #000 !important;
+  }
+  .dashboard-table th {
+    background: #667eea !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  .done-row {
+    background: #e5e7eb !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  .print-header {
+    display: block !important;
+    text-align: center;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #000;
+  }
+  .print-header h1 {
+    color: #000 !important;
+    font-size: 24px;
+    margin-bottom: 5px;
+  }
+  .print-header p {
+    color: #000 !important;
+    font-size: 14px;
+  }
+}
+
+.print-header {
+  display: none;
+}
+
 /* Modal Styles */
 .modal {
   display: none;
@@ -403,6 +451,10 @@ h1 { color: #667eea; font-size: 32px; font-weight: bold; text-align: center; }
 
     <!-- HISTORY TAB -->
     <div id="history-content" class="content">
+      <div class="print-header">
+        <h1>🚛 Shunter App - Daily Report</h1>
+        <p id="print-date"></p>
+      </div>
       <div class="dashboard-table">
         <table>
           <thead>
@@ -418,7 +470,7 @@ h1 { color: #667eea; font-size: 32px; font-weight: bold; text-align: center; }
         </table>
       </div>
       <div style="display: flex; gap: 10px; margin-top: 20px;">
-        <button class="delete-history-btn" style="flex: 1;" onclick="exportToCSV()">📥 Export to CSV</button>
+        <button class="delete-history-btn" style="flex: 1; background: #059669;" onclick="printHistory()">🖨️ Print History</button>
         <button class="delete-history-btn" style="flex: 1;" onclick="showDeleteModal()">🗑️ Clear History</button>
       </div>
     </div>
@@ -486,49 +538,23 @@ function checkAndClearHistory() {
 }
 
 // Export to CSV function
-function exportToCSV() {
+function printHistory() {
   if (movements.length === 0) {
-    alert('No history to export!');
+    alert('No history to print!');
     return;
   }
 
-  // Create CSV header
-  let csv = 'Trailer,From,To,Date,Time,Status\n';
-  
-  // Add each movement to CSV
-  movements.forEach(m => {
-    const date = new Date(m.time);
-    const dateStr = date.toLocaleDateString('en-GB');
-    const timeStr = date.toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit'});
-    const status = m.done ? 'Completed' : 'Pending';
-    
-    // Escape commas in trailer numbers if any
-    const trailer = (m.trailer || '-').replace(/,/g, ';');
-    
-    csv += `${trailer},${m.from},${m.to},${dateStr},${timeStr},${status}\n`;
+  // Update print header with current date
+  const today = new Date().toLocaleDateString('en-GB', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
   });
+  document.getElementById('print-date').textContent = today;
   
-  // Create download link
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-  const link = document.createElement('a');
-  const url = URL.createObjectURL(blob);
-  
-  // Generate filename with current date
-  const today = new Date().toLocaleDateString('en-GB').replace(/\//g, '-');
-  const filename = `Shunter_History_${today}.csv`;
-  
-  link.setAttribute('href', url);
-  link.setAttribute('download', filename);
-  link.style.visibility = 'hidden';
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  
-  // Show success message
-  const successMsg = document.getElementById('success-message');
-  successMsg.textContent = `✅ History exported to ${filename}`;
-  successMsg.style.display = 'block';
-  setTimeout(() => { successMsg.style.display = 'none'; }, 3000);
+  // Trigger print dialog
+  window.print();
 }
 
 // Delete History Modal Functions
