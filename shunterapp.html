@@ -232,7 +232,29 @@ h1 { color: #667eea; font-size: 32px; font-weight: bold; text-align: center; }
 .dashboard-table tr:last-child td { border-bottom: none; }
 .dashboard-table tr:hover { background: #f9fafb; }
 .done-row { background: #e5e7eb; color: #6b7280; }
-.done-row button { display: none; }
+
+.checkbox-btn {
+  background: white;
+  border: 2px solid #9ca3af;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+.checkbox-btn:hover {
+  border-color: #667eea;
+  background: #f3f4f6;
+}
+.checkbox-btn.checked {
+  background: #10b981;
+  border-color: #10b981;
+  color: white;
+}
 
 /* Delete History Button */
 .delete-history-btn {
@@ -720,12 +742,15 @@ function loadHistory(){
   hb.innerHTML='';
   movements.slice(0,50).forEach((m,index)=>{
     const time = new Date(m.time).toLocaleString('en-GB',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+    const checkboxClass = m.done ? 'checkbox-btn checked' : 'checkbox-btn';
+    const checkmark = m.done ? '✓' : '';
+    
     hb.innerHTML += `<tr data-index="${index}" class="${m.done?'done-row':''}">
       <td>${m.trailer || '-'}</td>
       <td>${m.from}</td>
       <td>${m.to}</td>
       <td>${time}</td>
-      <td><button onclick="markDone(${index})">✅</button></td>
+      <td><button class="${checkboxClass}" onclick="markDone(${index})">${checkmark}</button></td>
     </tr>`;
   });
   if(movements.length===0)
