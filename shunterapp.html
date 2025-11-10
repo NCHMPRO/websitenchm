@@ -446,6 +446,7 @@ let currentTouchElement = null;
 
 function addTouchSupport(element) {
   element.addEventListener('touchstart', function(e) {
+    e.preventDefault();
     const touch = e.touches[0];
     touchStartX = touch.clientX;
     touchStartY = touch.clientY;
@@ -457,7 +458,8 @@ function addTouchSupport(element) {
     
     element.style.opacity = '0.5';
     element.style.transform = 'scale(1.1)';
-  }, { passive: true });
+    element.style.zIndex = '9999';
+  }, { passive: false });
   
   element.addEventListener('touchmove', function(e) {
     if (!currentTouchElement) return;
@@ -465,8 +467,10 @@ function addTouchSupport(element) {
     e.preventDefault();
     const touch = e.touches[0];
     
-    // Find element under touch point
+    // Hide the dragged element temporarily to get element underneath
+    currentTouchElement.style.pointerEvents = 'none';
     const elementUnder = document.elementFromPoint(touch.clientX, touch.clientY);
+    currentTouchElement.style.pointerEvents = 'auto';
     
     // Remove all drag-over classes
     document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
@@ -490,11 +494,17 @@ function addTouchSupport(element) {
   element.addEventListener('touchend', function(e) {
     if (!currentTouchElement) return;
     
+    e.preventDefault();
     const touch = e.changedTouches[0];
+    
+    // Hide the dragged element temporarily to get element underneath
+    currentTouchElement.style.pointerEvents = 'none';
     const elementUnder = document.elementFromPoint(touch.clientX, touch.clientY);
+    currentTouchElement.style.pointerEvents = 'auto';
     
     element.style.opacity = '1';
     element.style.transform = 'scale(1)';
+    element.style.zIndex = '';
     
     // Remove all drag-over classes
     document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
@@ -558,9 +568,8 @@ function addTouchSupport(element) {
     draggedItem = null;
     draggedType = null;
     draggedName = null;
-  }, { passive: true });
+  }, { passive: false });
 }
-
 function render() {
   // Render Building B
   const buildingBContainer = document.getElementById('buildingB');
