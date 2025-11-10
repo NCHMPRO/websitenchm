@@ -94,6 +94,9 @@
     box-shadow: 0 2px 4px rgba(0,0,0,0.2);
     transition: all 0.2s;
     text-align: center;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: none;
   }
   .driver-btn:hover {
     transform: translateY(-2px);
@@ -127,6 +130,9 @@
     transition: all 0.2s;
     text-align: center;
     position: relative;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: none;
   }
   .custom-trailer-btn:hover {
     transform: translateY(-2px);
@@ -195,6 +201,9 @@
     font-size: 10px;
     color: #666;
     margin-bottom: 2px;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
   }
   .bay-content {
     font-size: 11px;
@@ -427,7 +436,129 @@ function renderCustomTrailers() {
     btn.addEventListener('dragend', (e) => {
       e.target.classList.remove('dragging');
     });
+    addTouchSupport(btn);
   });
+}
+
+// Touch support for mobile devices
+let touchStartX, touchStartY;
+let currentTouchElement = null;
+
+function addTouchSupport(element) {
+  element.addEventListener('touchstart', function(e) {
+    const touch = e.touches[0];
+    touchStartX = touch.clientX;
+    touchStartY = touch.clientY;
+    
+    draggedItem = element;
+    draggedType = element.dataset.type;
+    draggedName = element.dataset.name;
+    currentTouchElement = element;
+    
+    element.style.opacity = '0.5';
+    element.style.transform = 'scale(1.1)';
+  }, { passive: true });
+  
+  element.addEventListener('touchmove', function(e) {
+    if (!currentTouchElement) return;
+    
+    e.preventDefault();
+    const touch = e.touches[0];
+    
+    // Find element under touch point
+    const elementUnder = document.elementFromPoint(touch.clientX, touch.clientY);
+    
+    // Remove all drag-over classes
+    document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+    
+    // Add drag-over class to valid drop targets
+    if (elementUnder) {
+      const baySlot = elementUnder.closest('.bay-slot');
+      const driverBtn = elementUnder.closest('.driver-btn');
+      const dropZone = elementUnder.closest('.drop-zone');
+      
+      if (baySlot) {
+        baySlot.classList.add('drag-over');
+      } else if (driverBtn && draggedType === 'bay') {
+        driverBtn.classList.add('drag-over');
+      } else if (dropZone) {
+        dropZone.classList.add('drag-over');
+      }
+    }
+  }, { passive: false });
+  
+  element.addEventListener('touchend', function(e) {
+    if (!currentTouchElement) return;
+    
+    const touch = e.changedTouches[0];
+    const elementUnder = document.elementFromPoint(touch.clientX, touch.clientY);
+    
+    element.style.opacity = '1';
+    element.style.transform = 'scale(1)';
+    
+    // Remove all drag-over classes
+    document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+    
+    if (elementUnder) {
+      // Check if dropped on a bay slot
+      const baySlot = elementUnder.closest('.bay-slot');
+      if (baySlot) {
+        const bayId = baySlot.dataset.bay;
+        const building = baySlot.dataset.building;
+        const bayData = building === 'B' ? buildingB[bayId] : buildingC[bayId];
+        const timestamp = new Date().toLocaleTimeString();
+        
+        if (draggedType === 'power') {
+          bayData.hasPower = !bayData.hasPower;
+          const action = bayData.hasPower ? 'connected to' : 'disconnected from';
+          history.push(`⚡ Power ${action} ${bayId} at ${timestamp}`);
+          totalMoves++;
+          powerMoves++;
+        } else if (draggedType === 'driver' || draggedType === 'customer' || draggedType === 'trailer' || draggedType === 'bay') {
+          bayData.trailer = draggedName;
+          let icon = '🚛';
+          if (draggedType === 'driver') icon = '👤';
+          if (draggedType === 'customer') icon = '🏪';
+          if (draggedType === 'bay') icon = '📍';
+          history.push(`${icon} ${draggedName} moved to ${bayId} at ${timestamp}`);
+          totalMoves++;
+          trailerMoves++;
+        }
+        render();
+      }
+      
+      // Check if dropped on a driver button
+      const driverBtn = elementUnder.closest('.driver-btn');
+      if (driverBtn && draggedType === 'bay') {
+        const driverName = driverBtn.dataset.name;
+        const timestamp = new Date().toLocaleTimeString();
+        history.push(`📍 ${draggedName} assigned to ${driverName} at ${timestamp}`);
+        totalMoves++;
+        trailerMoves++;
+        render();
+      }
+      
+      // Check if dropped on Yard A
+      const dropZone = elementUnder.closest('.drop-zone');
+      if (dropZone && (draggedType === 'driver' || draggedType === 'customer' || draggedType === 'trailer' || draggedType === 'bay')) {
+        const timestamp = new Date().toLocaleTimeString();
+        let icon = '🚛';
+        if (draggedType === 'driver') icon = '👤';
+        if (draggedType === 'customer') icon = '🏪';
+        if (draggedType === 'bay') icon = '📍';
+        history.push(`${icon} ${draggedName} moved to Yard A at ${timestamp}`);
+        totalMoves++;
+        trailerMoves++;
+        yardA.push(draggedName);
+        render();
+      }
+    }
+    
+    currentTouchElement = null;
+    draggedItem = null;
+    draggedType = null;
+    draggedName = null;
+  }, { passive: true });
 }
 
 function render() {
@@ -484,6 +615,9 @@ function render() {
     label.addEventListener('dragend', (e) => {
       e.target.style.opacity = '1';
     });
+    
+    // Add touch support for mobile
+    addTouchSupport(label);
   });
 
   // Add drop listener to Yard A
@@ -527,6 +661,9 @@ document.querySelectorAll('[draggable="true"]').forEach(btn => {
   btn.addEventListener('dragend', (e) => {
     e.target.classList.remove('dragging');
   });
+  
+  // Add touch support for mobile
+  addTouchSupport(btn);
 });
 
 function handleDragOver(e) {
