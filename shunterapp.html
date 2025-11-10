@@ -5,151 +5,614 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Fast Shunter App</title>
 <style>
+  * { box-sizing: border-box; }
   body {
-    font-family: Arial, sans-serif;
-    margin: 5px;
-    background: #f0f0f0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 10px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: #222;
+    min-height: 100vh;
   }
-  h2 { margin: 5px 0; text-align: center; }
-  .container {
+  .app-header {
+    text-align: center;
+    color: white;
+    margin-bottom: 15px;
+  }
+  h1 {
+    margin: 0 0 5px 0;
+    font-size: 28px;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+  }
+  .subtitle {
+    font-size: 14px;
+    opacity: 0.9;
+  }
+  .stats {
     display: flex;
+    gap: 15px;
+    justify-content: center;
+    margin-bottom: 15px;
     flex-wrap: wrap;
-    justify-content: space-around;
   }
-  .column {
-    background: white;
+  .stat-card {
+    background: rgba(255,255,255,0.95);
+    border-radius: 10px;
+    padding: 10px 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    text-align: center;
+  }
+  .stat-value {
+    font-size: 24px;
+    font-weight: bold;
+    color: #007bff;
+  }
+  .stat-label {
+    font-size: 11px;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .main-layout {
+    display: grid;
+    grid-template-columns: 1fr 2fr 1fr;
+    gap: 12px;
+    margin-bottom: 15px;
+  }
+  @media (max-width: 1024px) {
+    .main-layout {
+      grid-template-columns: 1fr;
+    }
+  }
+  .section {
+    background: rgba(255,255,255,0.95);
+    border-radius: 12px;
+    padding: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  }
+  .section h3 {
+    margin: 0 0 10px 0;
+    font-size: 16px;
+    color: #333;
+    border-bottom: 2px solid #007bff;
+    padding-bottom: 6px;
+  }
+  .drivers {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .driver-btn {
+    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+    color: white;
+    border: none;
     border-radius: 8px;
-    padding: 5px;
-    margin: 5px;
-    flex: 1 1 45%;
-    max-width: 45%;
-    box-shadow: 0 0 5px rgba(0,0,0,0.1);
+    padding: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: grab;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    transition: all 0.2s;
+    text-align: center;
   }
-  ul {
+  .driver-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+  }
+  .driver-btn:active {
+    cursor: grabbing;
+  }
+  .driver-btn.dragging {
+    opacity: 0.5;
+  }
+  .customer-btn {
+    background: linear-gradient(135deg, #4ecdc4 0%, #44a39d 100%);
+  }
+  .custom-trailer-btn {
+    background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: grab;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    transition: all 0.2s;
+    text-align: center;
+    position: relative;
+  }
+  .custom-trailer-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+  }
+  .custom-trailer-btn:active {
+    cursor: grabbing;
+  }
+  .custom-trailer-btn.dragging {
+    opacity: 0.5;
+  }
+  .remove-trailer {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    background: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    font-size: 12px;
+    cursor: pointer;
+    line-height: 1;
+    padding: 0;
+  }
+  .remove-trailer:hover {
+    background: #c82333;
+  }
+  .bays-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+    gap: 6px;
+  }
+  .bay-slot {
+    background: #f0f0f0;
+    border: 2px dashed #ccc;
+    border-radius: 6px;
+    padding: 8px 4px;
+    font-size: 11px;
+    font-weight: 600;
+    text-align: center;
+    min-height: 50px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    position: relative;
+  }
+  .bay-slot.occupied {
+    background: linear-gradient(135deg, #e0e0e0 0%, #d0d0d0 100%);
+    border: 2px solid #999;
+  }
+  .bay-slot.has-power {
+    background: linear-gradient(135deg, #fff9c4 0%, #fff59d 100%);
+    border: 2px solid #ffd93d;
+    box-shadow: 0 0 10px rgba(255, 217, 61, 0.4);
+  }
+  .bay-slot.drag-over {
+    background: rgba(40, 167, 69, 0.3);
+    border: 2px solid #28a745;
+    transform: scale(1.05);
+  }
+  .bay-label {
+    font-size: 10px;
+    color: #666;
+    margin-bottom: 2px;
+  }
+  .bay-content {
+    font-size: 11px;
+    font-weight: bold;
+    color: #333;
+  }
+  .power-indicator {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    font-size: 10px;
+  }
+  #controls {
+    background: rgba(255,255,255,0.95);
+    border-radius: 12px;
+    padding: 12px;
+    margin-bottom: 15px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    text-align: center;
+  }
+  .util-btn {
+    padding: 8px 14px;
+    font-size: 13px;
+    border: none;
+    border-radius: 8px;
+    color: white;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: 600;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin: 4px;
+  }
+  .util-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+  }
+  .clear-btn {
+    background: #6c757d;
+  }
+  .reset-btn {
+    background: #dc3545;
+  }
+  #history {
+    background: rgba(255,255,255,0.95);
+    border-radius: 12px;
+    padding: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  }
+  #history h3 {
+    margin: 0 0 8px 0;
+    font-size: 16px;
+    color: #333;
+  }
+  #moveHistory {
+    max-height: 250px;
+    overflow-y: auto;
+    font-size: 12px;
     list-style: none;
     padding: 0;
     margin: 0;
   }
-  li {
-    background: #e7e7e7;
-    margin: 3px 0;
-    padding: 4px;
-    border-radius: 4px;
-    text-align: center;
-    font-size: 14px;
-  }
-  #controls {
-    text-align: center;
-    margin: 5px 0;
-  }
-  button {
-    margin: 2px;
-    padding: 4px 8px;
-    font-size: 12px;
-    border: none;
+  #moveHistory li {
+    background: #f8f9fa;
+    padding: 8px 10px;
+    margin: 4px 0;
     border-radius: 6px;
-    background: #007bff;
-    color: white;
-    cursor: pointer;
+    border-left: 3px solid #007bff;
+    animation: fadeIn 0.3s ease-out;
   }
-  button:active { background: #0056b3; }
-  #history {
-    margin-top: 8px;
-    background: #fff;
-    border-radius: 6px;
-    padding: 6px;
-    font-size: 12px;
-    max-height: 120px;
-    overflow-y: auto;
-  }
-  .power-on li {
-    background: #aaffaa !important;
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateX(-10px); }
+    to { opacity: 1; transform: translateX(0); }
   }
 </style>
 </head>
 <body>
-
-<h2>Fast Shunter App</h2>
-
-<div id="controls">
-  <button onclick="move('B','C')">B → C</button>
-  <button onclick="move('C','B')">C → B</button>
-  <button onclick="move('B','YardA')">B → Yard A</button>
-  <button onclick="move('C','YardD')">C → Yard D</button>
-  <button onclick="move('YardA','B')">Yard A → B</button>
-  <button onclick="move('YardD','C')">Yard D → C</button>
-  <button onclick="togglePower()">⚡ Power</button>
-  <button onclick="clearHistory()">🧹 Clear</button>
+<div class="app-header">
+  <h1>🚚 Fast Shunter App</h1>
+  <div class="subtitle">Trailer Movement Management System</div>
 </div>
 
-<div class="container">
-  <div id="buildingB" class="column">
-    <h3>Building B</h3>
-    <ul id="baysB"></ul>
+<div class="stats">
+  <div class="stat-card">
+    <div class="stat-value" id="totalMoves">0</div>
+    <div class="stat-label">Total Movements</div>
   </div>
-  <div id="buildingC" class="column">
-    <h3>Building C</h3>
-    <ul id="baysC"></ul>
+  <div class="stat-card">
+    <div class="stat-value" id="trailerMoves">0</div>
+    <div class="stat-label">Trailer Moves</div>
   </div>
-  <div id="yardA" class="column">
-    <h3>Yard A</h3>
-    <ul id="baysYardA"></ul>
+  <div class="stat-card">
+    <div class="stat-value" id="powerMoves">0</div>
+    <div class="stat-label">Power Requests</div>
   </div>
-  <div id="yardD" class="column">
-    <h3>Yard D</h3>
-    <ul id="baysYardD"></ul>
+</div>
+
+<div id="controls">
+  <button class="util-btn clear-btn" onclick="clearHistory()">🧹 Clear History</button>
+  <button class="util-btn reset-btn" onclick="resetAll()">🔄 Reset All</button>
+</div>
+
+<div class="main-layout">
+  <div class="section">
+    <h3>👥 Drivers & Power</h3>
+    <div class="drivers">
+      <button class="driver-btn" draggable="true" data-type="driver" data-name="Andree">Andree</button>
+      <button class="driver-btn" draggable="true" data-type="driver" data-name="Adorjan">Adorjan</button>
+      <button class="driver-btn" draggable="true" data-type="driver" data-name="Mark">Mark</button>
+      <button class="driver-btn power-btn-draggable" draggable="true" data-type="power" data-name="Power">⚡ Power</button>
+    </div>
+    
+    <h3 style="margin-top: 15px;">🚛 Custom Trailer</h3>
+    <div style="display: flex; flex-direction: column; gap: 8px;">
+      <input type="text" id="trailerInput" placeholder="Enter trailer number (e.g. Tet123)" 
+             style="padding: 10px; border: 2px solid #ccc; border-radius: 6px; font-size: 14px;">
+      <button onclick="createCustomTrailer()" 
+              style="background: #28a745; color: white; border: none; padding: 10px; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 14px;">
+        ✓ Create Trailer Button
+      </button>
+      <div id="customTrailers" style="display: flex; flex-direction: column; gap: 6px; margin-top: 8px;"></div>
+    </div>
   </div>
+
+  <div class="section">
+    <h3>🏢 Building B (25 Bays)</h3>
+    <div class="bays-grid" id="buildingB"></div>
+  </div>
+
+  <div class="section">
+    <h3>🏬 Customers & Yard A</h3>
+    <div class="drivers">
+      <button class="driver-btn customer-btn" draggable="true" data-type="customer" data-name="Mirela">Mirela</button>
+      <button class="driver-btn customer-btn" draggable="true" data-type="customer" data-name="ASDA">ASDA</button>
+      <button class="driver-btn customer-btn" draggable="true" data-type="customer" data-name="Morrisons">Morrisons</button>
+      <button class="driver-btn customer-btn" draggable="true" data-type="customer" data-name="Tesco">Tesco</button>
+      <button class="driver-btn customer-btn" draggable="true" data-type="customer" data-name="ZAK">ZAK</button>
+    </div>
+    <h3 style="margin-top: 15px;">🅿️ Yard A</h3>
+    <div style="background: #f0f0f0; border: 2px dashed #ccc; border-radius: 8px; padding: 15px; text-align: center; min-height: 80px;" 
+         class="drop-zone" data-location="YardA">
+      <div style="color: #666; font-size: 12px;">Drop trailers here</div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>🏪 Building C (26 Bays)</h3>
+  <div class="bays-grid" id="buildingC"></div>
 </div>
 
 <div id="history">
-  <strong>Move History:</strong>
+  <h3>📋 Movement History</h3>
   <ul id="moveHistory"></ul>
 </div>
 
 <script>
-let bays = {
-  B: ["B1", "B2", "B3"],
-  C: ["C1", "C2"],
-  YardA: [],
-  YardD: []
-};
-
+let buildingB = {};
+let buildingC = {};
+let yardA = [];
 let history = [];
+let totalMoves = 0;
+let trailerMoves = 0;
+let powerMoves = 0;
+let customTrailers = [];
 
-function render() {
-  for (let key in bays) {
-    const list = document.getElementById("bays" + key);
-    if (!list) continue;
-    list.innerHTML = bays[key].map(b => <li>${b}</li>).join("");
-  }
-
-  const histList = document.getElementById("moveHistory");
-  histList.innerHTML = history.slice(-10).reverse().map(h => <li>${h}</li>).join("");
+// Initialize bays
+for (let i = 1; i <= 25; i++) {
+  buildingB[`B${i}`] = { trailer: null, hasPower: false };
+}
+for (let i = 1; i <= 26; i++) {
+  buildingC[`C${i}`] = { trailer: null, hasPower: false };
 }
 
-function move(from, to) {
-  if (bays[from].length === 0) return alert("No containers in " + from);
-  const item = bays[from].shift();
-  bays[to].push(item);
-  const msg = ${item} moved from ${from} → ${to} at ${new Date().toLocaleTimeString()};
-  history.push(msg);
+let draggedItem = null;
+let draggedType = null;
+let draggedName = null;
+
+function createCustomTrailer() {
+  const input = document.getElementById('trailerInput');
+  const trailerNumber = input.value.trim();
+  
+  if (!trailerNumber) {
+    alert('Please enter a trailer number!');
+    return;
+  }
+  
+  if (customTrailers.includes(trailerNumber)) {
+    alert('This trailer already exists!');
+    return;
+  }
+  
+  customTrailers.push(trailerNumber);
+  input.value = '';
+  renderCustomTrailers();
+  
+  const timestamp = new Date().toLocaleTimeString();
+  history.push(`📝 Custom trailer "${trailerNumber}" created at ${timestamp}`);
   render();
 }
 
-function togglePower() {
-  document.body.classList.toggle("power-on");
-}
-
-function clearHistory() {
-  if (confirm("Clear move history?")) {
-    history = [];
+function removeCustomTrailer(trailerNumber) {
+  const index = customTrailers.indexOf(trailerNumber);
+  if (index > -1) {
+    customTrailers.splice(index, 1);
+    renderCustomTrailers();
+    
+    const timestamp = new Date().toLocaleTimeString();
+    history.push(`🗑️ Custom trailer "${trailerNumber}" removed at ${timestamp}`);
     render();
   }
 }
 
+function renderCustomTrailers() {
+  const container = document.getElementById('customTrailers');
+  container.innerHTML = customTrailers.map(trailer => `
+    <button class="custom-trailer-btn" draggable="true" data-type="trailer" data-name="${trailer}">
+      🚛 ${trailer}
+      <button class="remove-trailer" onclick="event.stopPropagation(); removeCustomTrailer('${trailer}')">×</button>
+    </button>
+  `).join('');
+  
+  // Add drag listeners to new custom trailer buttons
+  container.querySelectorAll('.custom-trailer-btn').forEach(btn => {
+    btn.addEventListener('dragstart', (e) => {
+      draggedItem = e.target;
+      draggedType = e.target.dataset.type;
+      draggedName = e.target.dataset.name;
+      e.target.classList.add('dragging');
+    });
+    btn.addEventListener('dragend', (e) => {
+      e.target.classList.remove('dragging');
+    });
+  });
+}
+
+function render() {
+  // Render Building B
+  const buildingBContainer = document.getElementById('buildingB');
+  buildingBContainer.innerHTML = Object.keys(buildingB).map(bayId => {
+    const bay = buildingB[bayId];
+    const classes = ['bay-slot'];
+    if (bay.trailer) classes.push('occupied');
+    if (bay.hasPower) classes.push('has-power');
+    
+    return `
+      <div class="${classes.join(' ')}" data-bay="${bayId}" data-building="B">
+        ${bay.hasPower ? '<span class="power-indicator">⚡</span>' : ''}
+        <div class="bay-label">${bayId}</div>
+        <div class="bay-content">${bay.trailer || ''}</div>
+      </div>
+    `;
+  }).join('');
+
+  // Render Building C
+  const buildingCContainer = document.getElementById('buildingC');
+  buildingCContainer.innerHTML = Object.keys(buildingC).map(bayId => {
+    const bay = buildingC[bayId];
+    const classes = ['bay-slot'];
+    if (bay.trailer) classes.push('occupied');
+    if (bay.hasPower) classes.push('has-power');
+    
+    return `
+      <div class="${classes.join(' ')}" data-bay="${bayId}" data-building="C">
+        ${bay.hasPower ? '<span class="power-indicator">⚡</span>' : ''}
+        <div class="bay-label">${bayId}</div>
+        <div class="bay-content">${bay.trailer || ''}</div>
+      </div>
+    `;
+  }).join('');
+
+  // Add drop listeners to all bay slots
+  document.querySelectorAll('.bay-slot').forEach(slot => {
+    slot.addEventListener('dragover', handleDragOver);
+    slot.addEventListener('dragenter', handleDragEnter);
+    slot.addEventListener('dragleave', handleDragLeave);
+    slot.addEventListener('drop', handleDrop);
+  });
+
+  // Add drop listener to Yard A
+  document.querySelectorAll('.drop-zone').forEach(zone => {
+    zone.addEventListener('dragover', handleDragOver);
+    zone.addEventListener('dragenter', handleDragEnter);
+    zone.addEventListener('dragleave', handleDragLeave);
+    zone.addEventListener('drop', handleDropYard);
+  });
+
+  // Render history
+  const histList = document.getElementById('moveHistory');
+  if (history.length === 0) {
+    histList.innerHTML = '<div style="color: #999; text-align: center; padding: 15px;">No movements yet</div>';
+  } else {
+    histList.innerHTML = history.slice(-30).reverse().map(h => `<li>${h}</li>`).join('');
+  }
+
+  // Update stats
+  document.getElementById('totalMoves').textContent = totalMoves;
+  document.getElementById('trailerMoves').textContent = trailerMoves;
+  document.getElementById('powerMoves').textContent = powerMoves;
+}
+
+// Drag handlers for driver/customer buttons
+document.querySelectorAll('[draggable="true"]').forEach(btn => {
+  btn.addEventListener('dragstart', (e) => {
+    draggedItem = e.target;
+    draggedType = e.target.dataset.type;
+    draggedName = e.target.dataset.name;
+    e.target.classList.add('dragging');
+  });
+  btn.addEventListener('dragend', (e) => {
+    e.target.classList.remove('dragging');
+  });
+});
+
+function handleDragOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  return false;
+}
+
+function handleDragEnter(e) {
+  e.currentTarget.classList.add('drag-over');
+}
+
+function handleDragLeave(e) {
+  e.currentTarget.classList.remove('drag-over');
+}
+
+function handleDrop(e) {
+  e.preventDefault();
+  e.currentTarget.classList.remove('drag-over');
+  
+  const bayId = e.currentTarget.dataset.bay;
+  const building = e.currentTarget.dataset.building;
+  const bayData = building === 'B' ? buildingB[bayId] : buildingC[bayId];
+  
+  const timestamp = new Date().toLocaleTimeString();
+  
+  if (draggedType === 'power') {
+    bayData.hasPower = !bayData.hasPower;
+    const action = bayData.hasPower ? 'connected to' : 'disconnected from';
+    const msg = `⚡ Power ${action} ${bayId} at ${timestamp}`;
+    history.push(msg);
+    totalMoves++;
+    powerMoves++;
+  } else if (draggedType === 'driver' || draggedType === 'customer' || draggedType === 'trailer') {
+    bayData.trailer = draggedName;
+    let icon = '🚛';
+    if (draggedType === 'driver') icon = '👤';
+    if (draggedType === 'customer') icon = '🏪';
+    const msg = `${icon} ${draggedName} moved to ${bayId} at ${timestamp}`;
+    history.push(msg);
+    totalMoves++;
+    trailerMoves++;
+  }
+  
+  render();
+  return false;
+}
+
+function handleDropYard(e) {
+  e.preventDefault();
+  e.currentTarget.classList.remove('drag-over');
+  
+  if (draggedType === 'driver' || draggedType === 'customer' || draggedType === 'trailer') {
+    const timestamp = new Date().toLocaleTimeString();
+    let icon = '🚛';
+    if (draggedType === 'driver') icon = '👤';
+    if (draggedType === 'customer') icon = '🏪';
+    const msg = `${icon} ${draggedName} moved to Yard A at ${timestamp}`;
+    history.push(msg);
+    totalMoves++;
+    trailerMoves++;
+    yardA.push(draggedName);
+    render();
+  }
+  return false;
+}
+
+function clearHistory() {
+  if (history.length === 0) {
+    alert("History is already empty!");
+    return;
+  }
+  if (confirm("Clear movement history?")) {
+    history = [];
+    totalMoves = 0;
+    trailerMoves = 0;
+    powerMoves = 0;
+    render();
+  }
+}
+
+function resetAll() {
+  if (confirm("Reset all bays and clear history?")) {
+    for (let i = 1; i <= 25; i++) {
+      buildingB[`B${i}`] = { trailer: null, hasPower: false };
+    }
+    for (let i = 1; i <= 26; i++) {
+      buildingC[`C${i}`] = { trailer: null, hasPower: false };
+    }
+    yardA = [];
+    customTrailers = [];
+    history = [];
+    totalMoves = 0;
+    trailerMoves = 0;
+    powerMoves = 0;
+    renderCustomTrailers();
+    render();
+  }
+}
+
+// Allow Enter key to create trailer
+document.addEventListener('DOMContentLoaded', () => {
+  const input = document.getElementById('trailerInput');
+  if (input) {
+    input.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        createCustomTrailer();
+      }
+    });
+  }
+});
+
 render();
 </script>
-
 </body>
 </html>
