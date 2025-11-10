@@ -105,6 +105,12 @@
   .driver-btn.dragging {
     opacity: 0.5;
   }
+  .driver-btn.drag-over {
+    background: linear-gradient(135deg, #28a745 0%, #218838 100%) !important;
+    transform: scale(1.05);
+    box-shadow: 0 0 20px rgba(40, 167, 69, 0.6);
+    border: 2px solid #fff;
+  }
   .customer-btn {
     background: linear-gradient(135deg, #4ecdc4 0%, #44a39d 100%);
   }
@@ -290,6 +296,16 @@
   <button class="util-btn reset-btn" onclick="resetAll()">🔄 Reset All</button>
 </div>
 
+<div class="section">
+  <h3>🏢 Building B (25 Bays)</h3>
+  <div class="bays-grid" id="buildingB"></div>
+</div>
+
+<div class="section">
+  <h3>🏪 Building C (26 Bays)</h3>
+  <div class="bays-grid" id="buildingC"></div>
+</div>
+
 <div class="main-layout">
   <div class="section">
     <h3>👥 Drivers & Power</h3>
@@ -313,12 +329,7 @@
   </div>
 
   <div class="section">
-    <h3>🏢 Building B (25 Bays)</h3>
-    <div class="bays-grid" id="buildingB"></div>
-  </div>
-
-  <div class="section">
-    <h3>🏬 Customers & Yard A</h3>
+    <h3>📍 Building Locations</h3>
     <div class="drivers">
       <button class="driver-btn customer-btn" draggable="true" data-type="customer" data-name="Mirela">Mirela</button>
       <button class="driver-btn customer-btn" draggable="true" data-type="customer" data-name="ASDA">ASDA</button>
@@ -332,11 +343,6 @@
       <div style="color: #666; font-size: 12px;">Drop trailers here</div>
     </div>
   </div>
-</div>
-
-<div class="section">
-  <h3>🏪 Building C (26 Bays)</h3>
-  <div class="bays-grid" id="buildingC"></div>
 </div>
 
 <div id="history">
@@ -436,8 +442,8 @@ function render() {
     return `
       <div class="${classes.join(' ')}" data-bay="${bayId}" data-building="B">
         ${bay.hasPower ? '<span class="power-indicator">⚡</span>' : ''}
-        <div class="bay-label">${bayId}</div>
         <div class="bay-content">${bay.trailer || ''}</div>
+        <div class="bay-label" draggable="true" data-type="bay" data-name="${bayId}" data-building="B" style="cursor: grab;">${bayId}</div>
       </div>
     `;
   }).join('');
@@ -453,8 +459,8 @@ function render() {
     return `
       <div class="${classes.join(' ')}" data-bay="${bayId}" data-building="C">
         ${bay.hasPower ? '<span class="power-indicator">⚡</span>' : ''}
-        <div class="bay-label">${bayId}</div>
         <div class="bay-content">${bay.trailer || ''}</div>
+        <div class="bay-label" draggable="true" data-type="bay" data-name="${bayId}" data-building="C" style="cursor: grab;">${bayId}</div>
       </div>
     `;
   }).join('');
@@ -467,12 +473,33 @@ function render() {
     slot.addEventListener('drop', handleDrop);
   });
 
+  // Add drag listeners to bay labels
+  document.querySelectorAll('.bay-label[draggable="true"]').forEach(label => {
+    label.addEventListener('dragstart', (e) => {
+      draggedItem = e.target;
+      draggedType = e.target.dataset.type;
+      draggedName = e.target.dataset.name;
+      e.target.style.opacity = '0.5';
+    });
+    label.addEventListener('dragend', (e) => {
+      e.target.style.opacity = '1';
+    });
+  });
+
   // Add drop listener to Yard A
   document.querySelectorAll('.drop-zone').forEach(zone => {
     zone.addEventListener('dragover', handleDragOver);
     zone.addEventListener('dragenter', handleDragEnter);
     zone.addEventListener('dragleave', handleDragLeave);
     zone.addEventListener('drop', handleDropYard);
+  });
+
+  // Add drop listeners to driver buttons (for bay assignments)
+  document.querySelectorAll('.driver-btn').forEach(btn => {
+    btn.addEventListener('dragover', handleDragOver);
+    btn.addEventListener('dragenter', handleDragEnter);
+    btn.addEventListener('dragleave', handleDragLeave);
+    btn.addEventListener('drop', handleDropDriver);
   });
 
   // Render history
@@ -542,6 +569,12 @@ function handleDrop(e) {
     history.push(msg);
     totalMoves++;
     trailerMoves++;
+  } else if (draggedType === 'bay') {
+    bayData.trailer = draggedName;
+    const msg = `📍 ${draggedName} moved to ${bayId} at ${timestamp}`;
+    history.push(msg);
+    totalMoves++;
+    trailerMoves++;
   }
   
   render();
@@ -552,11 +585,12 @@ function handleDropYard(e) {
   e.preventDefault();
   e.currentTarget.classList.remove('drag-over');
   
-  if (draggedType === 'driver' || draggedType === 'customer' || draggedType === 'trailer') {
+  if (draggedType === 'driver' || draggedType === 'customer' || draggedType === 'trailer' || draggedType === 'bay') {
     const timestamp = new Date().toLocaleTimeString();
     let icon = '🚛';
     if (draggedType === 'driver') icon = '👤';
     if (draggedType === 'customer') icon = '🏪';
+    if (draggedType === 'bay') icon = '📍';
     const msg = `${icon} ${draggedName} moved to Yard A at ${timestamp}`;
     history.push(msg);
     totalMoves++;
@@ -564,6 +598,24 @@ function handleDropYard(e) {
     yardA.push(draggedName);
     render();
   }
+  return false;
+}
+
+function handleDropDriver(e) {
+  e.preventDefault();
+  e.currentTarget.classList.remove('drag-over');
+  
+  // Only handle bay drops onto drivers (not driver-to-driver or other types)
+  if (draggedType === 'bay') {
+    const driverName = e.currentTarget.dataset.name;
+    const timestamp = new Date().toLocaleTimeString();
+    const msg = `📍 ${draggedName} assigned to ${driverName} at ${timestamp}`;
+    history.push(msg);
+    totalMoves++;
+    trailerMoves++;
+    render();
+  }
+  
   return false;
 }
 
