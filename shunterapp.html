@@ -3,813 +3,153 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Shunter App - Drag & Drop Bays</title>
+<title>Fast Shunter App</title>
 <style>
-* { margin: 0; padding: 0; box-sizing: border-box; }
-body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  min-height: 100vh;
-  padding: 15px;
-}
-.container { max-width: 1400px; margin: 0 auto; }
-
-/* Login Screen Styles */
-.login-screen {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 100vh;
-}
-.login-box {
-  background: white;
-  padding: 40px;
-  border-radius: 20px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-  max-width: 400px;
-  width: 100%;
-}
-.login-box h1 {
-  color: #667eea;
-  font-size: 32px;
-  text-align: center;
-  margin-bottom: 10px;
-}
-.login-box p {
-  text-align: center;
-  color: #6b7280;
-  margin-bottom: 30px;
-  font-size: 16px;
-}
-.login-form input {
-  width: 100%;
-  padding: 15px;
-  font-size: 18px;
-  border: 2px solid #e5e7eb;
-  border-radius: 10px;
-  margin-bottom: 15px;
-  transition: border-color 0.3s;
-}
-.login-form input:focus {
-  outline: none;
-  border-color: #667eea;
-}
-.login-form button {
-  width: 100%;
-  padding: 15px;
-  background: #667eea;
-  color: white;
-  border: none;
-  border-radius: 10px;
-  font-size: 18px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: all 0.3s;
-}
-.login-form button:hover {
-  background: #5568d3;
-  transform: translateY(-2px);
-}
-.error-message {
-  background: #fee2e2;
-  color: #991b1b;
-  padding: 10px 15px;
-  border-radius: 8px;
-  margin-bottom: 15px;
-  font-size: 14px;
-  text-align: center;
-  display: none;
-}
-
-/* Main App Styles */
-.main-app { display: none; }
-header {
-  background: white;
-  padding: 20px;
-  border-radius: 15px;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-  margin-bottom: 20px;
-}
-h1 { color: #667eea; font-size: 32px; font-weight: bold; text-align: center; }
-.tabs { display: flex; gap: 10px; margin-bottom: 20px; }
-.tab {
-  flex: 1;
-  padding: 18px;
-  background: white;
-  border: none;
-  border-radius: 12px;
-  font-size: 20px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: all 0.3s;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-.tab.active {
-  background: #667eea;
-  color: white;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-}
-.content { display: none; }
-.content.active { display: block; }
-.move-form {
-  background: white;
-  padding: 25px;
-  border-radius: 15px;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-  margin-bottom: 20px;
-}
-.form-group { margin-bottom: 20px; }
-.form-group label {
-  display: block;
-  font-size: 18px;
-  font-weight: bold;
-  color: #1f2937;
-  margin-bottom: 8px;
-}
-.form-group select,
-.form-group input {
-  width: 100%;
-  padding: 15px;
-  font-size: 18px;
-  border: 2px solid #e5e7eb;
-  border-radius: 10px;
-  background: white;
-  transition: border-color 0.3s;
-}
-.form-group select:focus,
-.form-group input:focus {
-  outline: none;
-  border-color: #667eea;
-}
-.move-button {
-  width: 100%;
-  padding: 20px;
-  background: #667eea;
-  color: white;
-  border: none;
-  border-radius: 12px;
-  font-size: 20px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: all 0.3s;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-}
-.move-button:hover {
-  background: #5568d3;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 12px rgba(0,0,0,0.15);
-}
-.move-button:active { transform: translateY(0); }
-.move-button:disabled {
-  background: #9ca3af;
-  cursor: not-allowed;
-  transform: none;
-}
-.bay-reference {
-  background: white;
-  padding: 20px;
-  border-radius: 15px;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-  margin-bottom: 20px;
-}
-.bay-section { margin-bottom: 15px; }
-.bay-section h3 {
-  font-size: 18px;
-  font-weight: bold;
-  color: #667eea;
-  margin-bottom: 10px;
-}
-.bay-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-.bay-chip {
-  padding: 8px 12px;
-  background: #f3f4f6;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 500;
-  color: #374151;
-  border: 1px solid #e5e7eb;
-}
-.success-message {
-  background: #d1fae5;
-  color: #1f1f1f;
-  padding: 15px 20px;
-  border-radius: 12px;
-  margin-bottom: 20px;
-  font-size: 18px;
-  font-weight: bold;
-  text-align: center;
-  display: none;
-}
-.dashboard-table {
-  width: 100%;
-  background: white;
-  border-radius: 15px;
-  overflow: hidden;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-  margin-bottom: 20px;
-}
-.dashboard-table table {
-  width: 100%;
-  border-collapse: collapse;
-}
-.dashboard-table th {
-  background: #667eea;
-  color: white;
-  padding: 15px;
-  text-align: left;
-  font-size: 16px;
-}
-.dashboard-table td {
-  padding: 12px 15px;
-  border-bottom: 1px solid #e5e7eb;
-  font-size: 16px;
-}
-.dashboard-table tr:last-child td { border-bottom: none; }
-.dashboard-table tr:hover { background: #f9fafb; }
-.done-row { background: #e5e7eb; color: #6b7280; }
-
-.checkbox-btn {
-  background: white;
-  border: 2px solid #9ca3af;
-  width: 32px;
-  height: 32px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 18px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s;
-}
-.checkbox-btn:hover {
-  border-color: #667eea;
-  background: #f3f4f6;
-}
-.checkbox-btn.checked {
-  background: #10b981;
-  border-color: #10b981;
-  color: white;
-}
-
-/* Delete History Button */
-.delete-history-btn {
-  width: 100%;
-  padding: 15px;
-  background: #dc2626;
-  color: white;
-  border: none;
-  border-radius: 12px;
-  font-size: 18px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: all 0.3s;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-}
-.delete-history-btn:hover {
-  background: #b91c1c;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 12px rgba(0,0,0,0.15);
-}
-
-/* Print Styles */
-@media print {
   body {
-    background: white !important;
-    padding: 0 !important;
+    font-family: Arial, sans-serif;
+    margin: 5px;
+    background: #f0f0f0;
+    color: #222;
   }
+  h2 { margin: 5px 0; text-align: center; }
   .container {
-    max-width: 100% !important;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
   }
-  header, .tabs, .delete-history-btn, .move-button {
-    display: none !important;
+  .column {
+    background: white;
+    border-radius: 8px;
+    padding: 5px;
+    margin: 5px;
+    flex: 1 1 45%;
+    max-width: 45%;
+    box-shadow: 0 0 5px rgba(0,0,0,0.1);
   }
-  .dashboard-table {
-    box-shadow: none !important;
-    border: 1px solid #000 !important;
+  ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
   }
-  .dashboard-table th {
-    background: #667eea !important;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-  }
-  .done-row {
-    background: #e5e7eb !important;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-  }
-  .print-header {
-    display: block !important;
+  li {
+    background: #e7e7e7;
+    margin: 3px 0;
+    padding: 4px;
+    border-radius: 4px;
     text-align: center;
-    margin-bottom: 20px;
-    padding-bottom: 10px;
-    border-bottom: 2px solid #000;
-  }
-  .print-header h1 {
-    color: #000 !important;
-    font-size: 24px;
-    margin-bottom: 5px;
-  }
-  .print-header p {
-    color: #000 !important;
     font-size: 14px;
   }
-}
-
-.print-header {
-  display: none;
-}
-
-/* Modal Styles */
-.modal {
-  display: none;
-  position: fixed;
-  z-index: 1000;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0,0,0,0.5);
-  align-items: center;
-  justify-content: center;
-}
-.modal.active {
-  display: flex;
-}
-.modal-content {
-  background: white;
-  padding: 30px;
-  border-radius: 15px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-  max-width: 400px;
-  width: 90%;
-}
-.modal-content h2 {
-  color: #667eea;
-  font-size: 24px;
-  margin-bottom: 20px;
-  text-align: center;
-}
-.modal-content input {
-  width: 100%;
-  padding: 15px;
-  font-size: 18px;
-  border: 2px solid #e5e7eb;
-  border-radius: 10px;
-  margin-bottom: 15px;
-}
-.modal-content input:focus {
-  outline: none;
-  border-color: #667eea;
-}
-.modal-buttons {
-  display: flex;
-  gap: 10px;
-}
-.modal-buttons button {
-  flex: 1;
-  padding: 15px;
-  border: none;
-  border-radius: 10px;
-  font-size: 16px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: all 0.3s;
-}
-.modal-confirm {
-  background: #dc2626;
-  color: white;
-}
-.modal-confirm:hover {
-  background: #b91c1c;
-}
-.modal-cancel {
-  background: #e5e7eb;
-  color: #374151;
-}
-.modal-cancel:hover {
-  background: #d1d5db;
-}
-
-@media (max-width: 768px) {
-  h1 { font-size: 24px; }
-  .tab { font-size: 16px; padding: 15px; }
-  .form-group label { font-size: 16px; }
-  .form-group select, .form-group input { font-size: 16px; padding: 12px; }
-  .move-button { font-size: 18px; padding: 18px; }
-  .bay-reference { padding: 15px; }
-  .dashboard-table th { font-size: 14px; padding: 12px; }
-  .dashboard-table td { font-size: 14px; padding: 10px; }
-}
+  #controls {
+    text-align: center;
+    margin: 5px 0;
+  }
+  button {
+    margin: 2px;
+    padding: 4px 8px;
+    font-size: 12px;
+    border: none;
+    border-radius: 6px;
+    background: #007bff;
+    color: white;
+    cursor: pointer;
+  }
+  button:active { background: #0056b3; }
+  #history {
+    margin-top: 8px;
+    background: #fff;
+    border-radius: 6px;
+    padding: 6px;
+    font-size: 12px;
+    max-height: 120px;
+    overflow-y: auto;
+  }
+  .power-on li {
+    background: #aaffaa !important;
+  }
 </style>
 </head>
 <body>
 
-<!-- Login Screen -->
-<div id="login-screen" class="login-screen">
-  <div class="login-box">
-    <h1>🚛 Shunter App</h1>
-    <p>Please enter password to continue</p>
-    <div class="login-form">
-      <div id="error-message" class="error-message">Incorrect password. Please try again.</div>
-      <input type="password" id="password-input" placeholder="Enter password" autocomplete="off">
-      <button onclick="checkPassword()">Login</button>
-    </div>
+<h2>Fast Shunter App</h2>
+
+<div id="controls">
+  <button onclick="move('B','C')">B → C</button>
+  <button onclick="move('C','B')">C → B</button>
+  <button onclick="move('B','YardA')">B → Yard A</button>
+  <button onclick="move('C','YardD')">C → Yard D</button>
+  <button onclick="move('YardA','B')">Yard A → B</button>
+  <button onclick="move('YardD','C')">Yard D → C</button>
+  <button onclick="togglePower()">⚡ Power</button>
+  <button onclick="clearHistory()">🧹 Clear</button>
+</div>
+
+<div class="container">
+  <div id="buildingB" class="column">
+    <h3>Building B</h3>
+    <ul id="baysB"></ul>
+  </div>
+  <div id="buildingC" class="column">
+    <h3>Building C</h3>
+    <ul id="baysC"></ul>
+  </div>
+  <div id="yardA" class="column">
+    <h3>Yard A</h3>
+    <ul id="baysYardA"></ul>
+  </div>
+  <div id="yardD" class="column">
+    <h3>Yard D</h3>
+    <ul id="baysYardD"></ul>
   </div>
 </div>
 
-<!-- Main App -->
-<div id="main-app" class="main-app">
-  <div class="container">
-    <header><h1>🚛 Shunter App</h1></header>
-
-    <div class="tabs">
-      <button class="tab active" onclick="switchTab('move', event)">Move Bays</button>
-      <button class="tab" onclick="switchTab('history', event)">History</button>
-    </div>
-
-    <!-- MOVE TAB -->
-    <div id="move-content" class="content active">
-      <div id="success-message" class="success-message"></div>
-
-      <div class="move-form">
-        <div class="form-group">
-          <label for="from-select">📦 From:</label>
-          <select id="from-select">
-            <option value="">-- Select Bay --</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label for="to-select">📍 To:</label>
-          <select id="to-select">
-            <option value="">-- Select Bay --</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label for="trailer-input">🚚 Trailer Number (optional):</label>
-          <input id="trailer-input" type="text" placeholder="Enter trailer ID (optional)" maxlength="12">
-        </div>
-
-        <button class="move-button" onclick="submitMove()">Move the Trailer</button>
-      </div>
-
-      <div class="bay-reference">
-        <div class="bay-section">
-          <h3>🏢 Building B (Bravo) - 25 Bays</h3>
-          <div class="bay-list" id="bravo-list"></div>
-        </div>
-        <div class="bay-section">
-          <h3>🏢 Building C (Charlie) - 26 Bays</h3>
-          <div class="bay-list" id="charlie-list"></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- HISTORY TAB -->
-    <div id="history-content" class="content">
-      <div class="print-header">
-        <h1>🚛 Shunter App - Daily Report</h1>
-        <p id="print-date"></p>
-      </div>
-      
-      <!-- Move Counter -->
-      <div style="background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 20px;">
-        <div style="display: flex; justify-content: space-around; text-align: center; flex-wrap: wrap; gap: 15px;">
-          <div style="flex: 1; min-width: 120px;">
-            <div style="font-size: 36px; font-weight: bold; color: #667eea;" id="total-moves">0</div>
-            <div style="font-size: 14px; color: #6b7280; margin-top: 5px;">Total Moves</div>
-          </div>
-          <div style="flex: 1; min-width: 120px;">
-            <div style="font-size: 36px; font-weight: bold; color: #10b981;" id="completed-moves">0</div>
-            <div style="font-size: 14px; color: #6b7280; margin-top: 5px;">Completed</div>
-          </div>
-          <div style="flex: 1; min-width: 120px;">
-            <div style="font-size: 36px; font-weight: bold; color: #f59e0b;" id="pending-moves">0</div>
-            <div style="font-size: 14px; color: #6b7280; margin-top: 5px;">Pending</div>
-          </div>
-        </div>
-      </div>
-      
-      <div class="dashboard-table">
-        <table>
-          <thead>
-            <tr>
-              <th>Trailer</th>
-              <th>From</th>
-              <th>To</th>
-              <th>Time</th>
-              <th>Done</th>
-            </tr>
-          </thead>
-          <tbody id="history-body"></tbody>
-        </table>
-      </div>
-      <div style="display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap;">
-        <button class="delete-history-btn" style="flex: 1; min-width: 150px; background: #059669;" onclick="printHistory()">🖨️ Print</button>
-        <button class="delete-history-btn" style="flex: 1; min-width: 150px; background: #2563eb;" onclick="emailHistory()">📧 Email</button>
-        <button class="delete-history-btn" style="flex: 1; min-width: 150px;" onclick="showDeleteModal()">🗑️ Clear</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Delete Confirmation Modal -->
-<div id="delete-modal" class="modal">
-  <div class="modal-content">
-    <h2>⚠️ Clear History</h2>
-    <p style="text-align: center; margin-bottom: 20px; color: #6b7280;">Enter password to delete all history</p>
-    <div id="delete-error" class="error-message">Incorrect password. Please try again.</div>
-    <input type="password" id="delete-password" placeholder="Enter delete password">
-    <div class="modal-buttons">
-      <button class="modal-cancel" onclick="closeDeleteModal()">Cancel</button>
-      <button class="modal-confirm" onclick="confirmDelete()">Delete</button>
-    </div>
-  </div>
+<div id="history">
+  <strong>Move History:</strong>
+  <ul id="moveHistory"></ul>
 </div>
 
 <script>
-// Password Protection
-function checkPassword() {
-  const passwordInput = document.getElementById('password-input');
-  const errorMessage = document.getElementById('error-message');
-  const loginScreen = document.getElementById('login-screen');
-  const mainApp = document.getElementById('main-app');
-  
-  if (passwordInput.value === 'Tug123') {
-    sessionStorage.setItem('shunterLoggedIn', 'true');
-    loginScreen.style.display = 'none';
-    mainApp.style.display = 'block';
-  } else {
-    errorMessage.style.display = 'block';
-    passwordInput.value = '';
-    passwordInput.focus();
-  }
-}
-
-function checkLoginState() {
-  if (sessionStorage.getItem('shunterLoggedIn') === 'true') {
-    document.getElementById('login-screen').style.display = 'none';
-    document.getElementById('main-app').style.display = 'block';
-  }
-}
-
-document.getElementById('password-input')?.addEventListener('keypress', function(e) {
-  if (e.key === 'Enter') {
-    checkPassword();
-  }
-});
-
-// Auto-clear history at midnight
-function checkAndClearHistory() {
-  const lastClearDate = localStorage.getItem('shunterLastClear');
-  const today = new Date().toDateString();
-  
-  if (lastClearDate !== today) {
-    // New day detected - clear history
-    movements = [];
-    saveData();
-    localStorage.setItem('shunterLastClear', today);
-    console.log('History auto-cleared for new day');
-  }
-}
-
-// Export to CSV function
-function printHistory() {
-  if (movements.length === 0) {
-    alert('No history to print!');
-    return;
-  }
-
-  // Update print header with current date
-  const today = new Date().toLocaleDateString('en-GB', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  });
-  document.getElementById('print-date').textContent = today;
-  
-  // Trigger print dialog
-  window.print();
-}
-
-// Delete History Modal Functions
-function showDeleteModal() {
-  const modal = document.getElementById('delete-modal');
-  const deleteError = document.getElementById('delete-error');
-  const deletePassword = document.getElementById('delete-password');
-  
-  deleteError.style.display = 'none';
-  deletePassword.value = '';
-  modal.classList.add('active');
-  deletePassword.focus();
-}
-
-function closeDeleteModal() {
-  const modal = document.getElementById('delete-modal');
-  modal.classList.remove('active');
-}
-
-function confirmDelete() {
-  const deletePassword = document.getElementById('delete-password');
-  const deleteError = document.getElementById('delete-error');
-  
-  if (deletePassword.value === 'delete123') {
-    // Clear all history
-    movements = [];
-    saveData();
-    loadHistory();
-    closeDeleteModal();
-    
-    // Show success message
-    const successMsg = document.getElementById('success-message');
-    successMsg.textContent = '✅ History cleared successfully';
-    successMsg.style.display = 'block';
-    setTimeout(() => { successMsg.style.display = 'none'; }, 3000);
-  } else {
-    deleteError.style.display = 'block';
-    deletePassword.value = '';
-    deletePassword.focus();
-  }
-}
-
-// Allow Enter key in delete modal
-document.getElementById('delete-password')?.addEventListener('keypress', function(e) {
-  if (e.key === 'Enter') {
-    confirmDelete();
-  }
-});
-
-// Main App Code
-let movements = [];
-
-function loadData() {
-  const saved = localStorage.getItem('shunterMovements');
-  if (saved) {
-    movements = JSON.parse(saved).map(m => ({
-      ...m,
-      time: new Date(m.time)
-    }));
-  }
-}
-
-function saveData() {
-  localStorage.setItem('shunterMovements', JSON.stringify(movements));
-}
-
-const bayGroups = {
-  'B1':'ANDREE','B2':'ANDREE','B3':'ANDREE','B4':'ANDREE','B5':'ANDREE','B6':'ANDREE','B7':'ANDREE','B8':'ANDREE','B9':'ANDREE','B10':'ANDREE','B11':'ANDREE','B12':'ANDREE',
-  'B13':'ADORJAN','B14':'ADORJAN','B15':'ADORJAN','B16':'ADORJAN','B17':'ADORJAN',
-  'B18':'MARK','B19':'MARK','B20':'MARK','B21':'MARK','B22':'MARK','B23':'MARK','B24':'MARK','B25':'MARK',
-  'C1':'ASDA','C2':'ASDA','C3':'ASDA','C4':'ASDA','C5':'ASDA',
-  'C6':'COLLECTION','C7':'COLLECTION','C8':'COLLECTION','C9':'COLLECTION',
-  'C10':'MORRISONS','C11':'MORRISONS','C12':'MORRISONS','C13':'MORRISONS',
-  'C14':'TESCO','C15':'TESCO','C16':'TESCO','C17':'TESCO','C18':'TESCO','C19':'TESCO','C20':'TESCO','C21':'TESCO','C22':'TESCO','C23':'TESCO',
-  'C24':'PULING','C25':'PULING','C26':'PULING'
+let bays = {
+  B: ["B1", "B2", "B3"],
+  C: ["C1", "C2"],
+  YardA: [],
+  YardD: []
 };
 
-const bravoBays = Array.from({length:25}, (_,i)=>'B'+(i+1));
-const charlieBays = Array.from({length:26}, (_,i)=>'C'+(i+1));
-const allBays = [...bravoBays, ...charlieBays, 'Yard'];
+let history = [];
 
-function initDropdowns() {
-  const fromSelect = document.getElementById('from-select');
-  const toSelect = document.getElementById('to-select');
-  
-  allBays.forEach(bay => {
-    const fromOption = document.createElement('option');
-    fromOption.value = bay;
-    fromOption.textContent = bay + (bayGroups[bay] ? ` (${bayGroups[bay]})` : '');
-    fromSelect.appendChild(fromOption);
-    
-    const toOption = document.createElement('option');
-    toOption.value = bay;
-    toOption.textContent = bay + (bayGroups[bay] ? ` (${bayGroups[bay]})` : '');
-    toSelect.appendChild(toOption);
-  });
-}
-
-function initBayReference() {
-  const bravoList = document.getElementById('bravo-list');
-  const charlieList = document.getElementById('charlie-list');
-  
-  bravoBays.forEach(bay => {
-    const chip = document.createElement('div');
-    chip.className = 'bay-chip';
-    chip.textContent = `${bay} - ${bayGroups[bay]}`;
-    bravoList.appendChild(chip);
-  });
-  
-  charlieBays.forEach(bay => {
-    const chip = document.createElement('div');
-    chip.className = 'bay-chip';
-    chip.textContent = `${bay} - ${bayGroups[bay]}`;
-    charlieList.appendChild(chip);
-  });
-}
-
-function submitMove() {
-  const fromSelect = document.getElementById('from-select');
-  const toSelect = document.getElementById('to-select');
-  const trailerInput = document.getElementById('trailer-input');
-  const successMsg = document.getElementById('success-message');
-  
-  const from = fromSelect.value;
-  const to = toSelect.value;
-  const trailer = trailerInput.value.trim();
-  
-  if (!from || !to) {
-    alert('Please select both FROM and TO locations');
-    return;
-  }
-  if (from === to) {
-    alert('FROM and TO cannot be the same');
-    return;
+function render() {
+  for (let key in bays) {
+    const list = document.getElementById("bays" + key);
+    if (!list) continue;
+    list.innerHTML = bays[key].map(b => <li>${b}</li>).join("");
   }
 
-  movements.unshift({
-    from: from,
-    to: to,
-    trailer: trailer || '-',
-    time: new Date(),
-    done: false
-  });
-
-  saveData();
-  
-  successMsg.textContent = trailer
-    ? `✅ Trailer ${trailer} moved from ${from} → ${to}`
-    : `✅ Moved ${from} → ${to}`;
-  successMsg.style.display = 'block';
-  setTimeout(() => { successMsg.style.display = 'none'; }, 3000);
-  
-  fromSelect.value = '';
-  toSelect.value = '';
-  trailerInput.value = '';
-  
-  loadHistory();
+  const histList = document.getElementById("moveHistory");
+  histList.innerHTML = history.slice(-10).reverse().map(h => <li>${h}</li>).join("");
 }
 
-function loadHistory(){
-  const hb = document.getElementById('history-body');
-  hb.innerHTML='';
-  
-  // Calculate statistics
-  const totalMoves = movements.length;
-  const completedMoves = movements.filter(m => m.done).length;
-  const pendingMoves = totalMoves - completedMoves;
-  
-  // Update counters
-  document.getElementById('total-moves').textContent = totalMoves;
-  document.getElementById('completed-moves').textContent = completedMoves;
-  document.getElementById('pending-moves').textContent = pendingMoves;
-  
-  movements.slice(0,50).forEach((m,index)=>{
-    const time = new Date(m.time).toLocaleString('en-GB',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
-    const checkboxClass = m.done ? 'checkbox-btn checked' : 'checkbox-btn';
-    const checkmark = m.done ? '✓' : '';
-    
-    hb.innerHTML += `<tr data-index="${index}" class="${m.done?'done-row':''}">
-      <td>${m.trailer || '-'}</td>
-      <td>${m.from}</td>
-      <td>${m.to}</td>
-      <td>${time}</td>
-      <td><button class="${checkboxClass}" onclick="markDone(${index})">${checkmark}</button></td>
-    </tr>`;
-  });
-  if(movements.length===0)
-    hb.innerHTML='<tr><td colspan="5" style="text-align:center; color:#9ca3af;">No moves yet</td></tr>';
+function move(from, to) {
+  if (bays[from].length === 0) return alert("No containers in " + from);
+  const item = bays[from].shift();
+  bays[to].push(item);
+  const msg = ${item} moved from ${from} → ${to} at ${new Date().toLocaleTimeString()};
+  history.push(msg);
+  render();
 }
 
-function markDone(index){
-  movements[index].done = true;
-  saveData();
-  loadHistory();
+function togglePower() {
+  document.body.classList.toggle("power-on");
 }
 
-function switchTab(tab,event){
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-  document.querySelectorAll('.content').forEach(c=>c.classList.remove('active'));
-  event.target.classList.add('active');
-  document.getElementById(`${tab}-content`).classList.add('active');
+function clearHistory() {
+  if (confirm("Clear move history?")) {
+    history = [];
+    render();
+  }
 }
 
-// Initialize
-checkLoginState();
-checkAndClearHistory(); // Check if we need to clear history for new day
-loadData();
-initDropdowns();
-initBayReference();
-loadHistory();
-
-// Check every hour if it's a new day
-setInterval(checkAndClearHistory, 3600000); // 1 hour
+render();
 </script>
+
 </body>
 </html>
