@@ -573,7 +573,7 @@ function handleTouchMove(e) {
   }
   
   if (elementBelow) {
-    const dropTarget = elementBelow.closest('.driver-btn');
+    const dropTarget = elementBelow.closest('.driver-btn, .bay-btn');
     if (dropTarget && isValidDropTarget(dropTarget)) {
       dropTarget.classList.add('drop-highlight');
       currentDropTarget = dropTarget;
@@ -614,29 +614,84 @@ function handleTouchCancel(e) {
 }
 
 function isValidDropTarget(target) {
-  // Only allow dragging bays to driver buttons (names)
+  if (!draggedElement) {
+    return false;
+  }
+
   if (target.classList.contains('driver-btn')) {
     return draggedType === 'bay';
   }
+
+  if (target.classList.contains('bay-btn')) {
+    if (draggedType !== 'bay') {
+      return false;
+    }
+    const targetBay = target.dataset.bay;
+    const targetBuilding = target.dataset.building;
+    if (!targetBay || !targetBuilding) {
+      return false;
+    }
+    if (draggedSourceBay && draggedSourceBuilding) {
+      return !(targetBay === draggedSourceBay && targetBuilding === draggedSourceBuilding);
+    }
+    return true;
+  }
+
   return false;
 }
 
 function handleDrop(target) {
   const timestamp = new Date().toLocaleTimeString();
-  
-  // Only handle bay to driver/customer drops
+
+  let actionTaken = false;
+
   if (target.classList.contains('driver-btn') && draggedType === 'bay') {
     const driverName = target.dataset.name;
     const bayId = draggedSourceBay;
     
-    // Just add to history, don't change anything else
     history.push(`📍 Bay ${bayId} assigned to ${driverName} at ${timestamp}`);
     totalMoves++;
     trailerMoves++;
+    actionTaken = true;
+  } else if (target.classList.contains('bay-btn') && draggedType === 'bay') {
+    const targetBayId = target.dataset.bay;
+    const targetBuilding = target.dataset.building;
+    const sourceBayId = draggedSourceBay;
+    const sourceBuilding = draggedSourceBuilding;
+
+    if (targetBayId && targetBuilding && sourceBayId && sourceBuilding) {
+      if (!(targetBayId === sourceBayId && targetBuilding === sourceBuilding)) {
+        const sourceCollection = sourceBuilding === 'B' ? buildingB : buildingC;
+        const targetCollection = targetBuilding === 'B' ? buildingB : buildingC;
+        const sourceData = sourceCollection[sourceBayId];
+        const targetData = targetCollection[targetBayId];
+
+        if (sourceData && targetData) {
+          const sourceTrailer = sourceData.trailer;
+          const targetTrailer = targetData.trailer;
+
+          if (sourceTrailer) {
+            sourceData.trailer = targetTrailer || null;
+            targetData.trailer = sourceTrailer;
+
+            const movedLabel = sourceTrailer;
+            history.push(`🚚 ${movedLabel} moved from ${sourceBayId} to ${targetBayId} at ${timestamp}`);
+          } else {
+            history.push(`📍 ${sourceBayId} assigned to ${targetBayId} at ${timestamp}`);
+          }
+
+          totalMoves++;
+          trailerMoves++;
+          actionTaken = true;
+        }
+      }
+    }
   }
-  
-  render();
-  showPage(activePage, true);
+
+  if (actionTaken) {
+    render();
+    showPage(activePage, true);
+  }
 }
 
 function cleanupDrag() {
