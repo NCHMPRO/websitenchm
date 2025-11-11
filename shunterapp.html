@@ -13,6 +13,7 @@
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: #222;
     min-height: 100vh;
+    overflow-x: hidden;
   }
   .app-header {
     text-align: center;
@@ -30,45 +31,35 @@
   }
   .stats {
     display: flex;
-    gap: 15px;
+    gap: 10px;
     justify-content: center;
-    margin-bottom: 15px;
+    margin-top: 10px;
     flex-wrap: wrap;
   }
   .stat-card {
     background: rgba(255,255,255,0.95);
     border-radius: 10px;
-    padding: 10px 20px;
+    padding: 8px 15px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     text-align: center;
   }
   .stat-value {
-    font-size: 24px;
+    font-size: 20px;
     font-weight: bold;
     color: #007bff;
   }
   .stat-label {
-    font-size: 11px;
+    font-size: 10px;
     color: #666;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-  }
-  .main-layout {
-    display: grid;
-    grid-template-columns: 1fr 2fr 1fr;
-    gap: 12px;
-    margin-bottom: 15px;
-  }
-  @media (max-width: 1024px) {
-    .main-layout {
-      grid-template-columns: 1fr;
-    }
   }
   .section {
     background: rgba(255,255,255,0.95);
     border-radius: 12px;
     padding: 12px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    margin-bottom: 15px;
   }
   .section h3 {
     margin: 0 0 10px 0;
@@ -77,9 +68,68 @@
     border-bottom: 2px solid #007bff;
     padding-bottom: 6px;
   }
-  .drivers {
+  .bay-btn {
+    background: linear-gradient(135deg, #f0f0f0 0%, #e0e0e0 100%);
+    color: #333;
+    border: 2px solid #ccc;
+    border-radius: 8px;
+    padding: 10px 8px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: grab;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: all 0.2s;
+    text-align: center;
+    user-select: none;
+    -webkit-user-select: none;
+    min-height: 60px;
     display: flex;
     flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    touch-action: none;
+  }
+  .bay-btn.occupied {
+    background: linear-gradient(135deg, #4ecdc4 0%, #44a39d 100%);
+    color: white;
+    border-color: #3a9d96;
+  }
+  .bay-btn.has-power {
+    background: linear-gradient(135deg, #fff9c4 0%, #ffd93d 100%);
+    border: 2px solid #ffc107;
+    box-shadow: 0 0 15px rgba(255, 193, 7, 0.5);
+  }
+  .bay-btn.dragging {
+    opacity: 0.5;
+    transform: scale(1.1);
+    z-index: 1000;
+  }
+  .bay-btn.drop-highlight {
+    background: linear-gradient(135deg, #28a745 0%, #218838 100%) !important;
+    color: white !important;
+    transform: scale(1.05);
+    box-shadow: 0 0 20px rgba(40, 167, 69, 0.8);
+    border: 3px solid #fff !important;
+  }
+  .power-indicator {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    font-size: 14px;
+  }
+  .bay-content {
+    font-size: 11px;
+    font-weight: bold;
+    margin-bottom: 2px;
+  }
+  .bay-label {
+    font-size: 10px;
+    opacity: 0.8;
+  }
+  .bays-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
     gap: 8px;
   }
   .driver-btn {
@@ -87,7 +137,7 @@
     color: white;
     border: none;
     border-radius: 8px;
-    padding: 12px;
+    padding: 14px;
     font-size: 14px;
     font-weight: 600;
     cursor: grab;
@@ -98,24 +148,21 @@
     -webkit-user-select: none;
     touch-action: none;
   }
-  .driver-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-  }
-  .driver-btn:active {
-    cursor: grabbing;
-  }
   .driver-btn.dragging {
     opacity: 0.5;
+    transform: scale(1.1);
+    z-index: 1000;
   }
-  .driver-btn.drag-over {
+  .driver-btn.drop-highlight {
     background: linear-gradient(135deg, #28a745 0%, #218838 100%) !important;
     transform: scale(1.05);
-    box-shadow: 0 0 20px rgba(40, 167, 69, 0.6);
-    border: 2px solid #fff;
+    box-shadow: 0 0 20px rgba(40, 167, 69, 0.8);
   }
   .customer-btn {
     background: linear-gradient(135deg, #4ecdc4 0%, #44a39d 100%);
+  }
+  .power-btn {
+    background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
   }
   .custom-trailer-btn {
     background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
@@ -134,15 +181,10 @@
     -webkit-user-select: none;
     touch-action: none;
   }
-  .custom-trailer-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-  }
-  .custom-trailer-btn:active {
-    cursor: grabbing;
-  }
   .custom-trailer-btn.dragging {
     opacity: 0.5;
+    transform: scale(1.1);
+    z-index: 1000;
   }
   .remove-trailer {
     position: absolute;
@@ -152,69 +194,16 @@
     color: white;
     border: none;
     border-radius: 50%;
-    width: 20px;
-    height: 20px;
-    font-size: 12px;
+    width: 22px;
+    height: 22px;
+    font-size: 14px;
     cursor: pointer;
     line-height: 1;
     padding: 0;
+    touch-action: manipulation;
   }
   .remove-trailer:hover {
     background: #c82333;
-  }
-  .bays-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
-    gap: 6px;
-  }
-  .bay-slot {
-    background: #f0f0f0;
-    border: 2px dashed #ccc;
-    border-radius: 6px;
-    padding: 8px 4px;
-    font-size: 11px;
-    font-weight: 600;
-    text-align: center;
-    min-height: 50px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s;
-    position: relative;
-  }
-  .bay-slot.occupied {
-    background: linear-gradient(135deg, #e0e0e0 0%, #d0d0d0 100%);
-    border: 2px solid #999;
-  }
-  .bay-slot.has-power {
-    background: linear-gradient(135deg, #fff9c4 0%, #fff59d 100%);
-    border: 2px solid #ffd93d;
-    box-shadow: 0 0 10px rgba(255, 217, 61, 0.4);
-  }
-  .bay-slot.drag-over {
-    background: rgba(40, 167, 69, 0.3);
-    border: 2px solid #28a745;
-    transform: scale(1.05);
-  }
-  .bay-label {
-    font-size: 10px;
-    color: #666;
-    margin-bottom: 2px;
-    touch-action: none;
-    user-select: none;
-    -webkit-user-select: none;
-  }
-  .bay-content {
-    font-size: 11px;
-    font-weight: bold;
-    color: #333;
-  }
-  .power-indicator {
-    position: absolute;
-    top: 2px;
-    right: 2px;
-    font-size: 10px;
   }
   #controls {
     background: rgba(255,255,255,0.95);
@@ -225,7 +214,7 @@
     text-align: center;
   }
   .util-btn {
-    padding: 8px 14px;
+    padding: 10px 16px;
     font-size: 13px;
     border: none;
     border-radius: 8px;
@@ -235,16 +224,61 @@
     font-weight: 600;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     margin: 4px;
+    touch-action: manipulation;
   }
-  .util-btn:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+  .util-btn:active {
+    transform: scale(0.95);
   }
   .clear-btn {
     background: #6c757d;
   }
   .reset-btn {
     background: #dc3545;
+  }
+  #pageNav {
+    text-align: center;
+    margin-bottom: 15px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 10px 0;
+  }
+  .page {
+    display: none;
+  }
+  .page.active {
+    display: block;
+  }
+  .names-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 10px;
+  }
+  .yard-btn {
+    background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 20px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    transition: all 0.2s;
+    text-align: center;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: none;
+    min-height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .yard-btn.drop-highlight {
+    background: linear-gradient(135deg, #28a745 0%, #218838 100%) !important;
+    transform: scale(1.05);
+    box-shadow: 0 0 20px rgba(40, 167, 69, 0.8);
   }
   #history {
     background: rgba(255,255,255,0.95);
@@ -277,6 +311,20 @@
     from { opacity: 0; transform: translateX(-10px); }
     to { opacity: 1; transform: translateX(0); }
   }
+  
+  .drag-ghost {
+    position: fixed;
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.8;
+    transform: scale(1.1);
+    background: rgba(255,255,255,0.95);
+    padding: 10px 15px;
+    border-radius: 8px;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+    font-weight: bold;
+    color: #333;
+  }
 </style>
 </head>
 <body>
@@ -285,71 +333,66 @@
   <div class="subtitle">Trailer Movement Management System</div>
 </div>
 
-<div class="stats">
-  <div class="stat-card">
-    <div class="stat-value" id="totalMoves">0</div>
-    <div class="stat-label">Total Movements</div>
-  </div>
-  <div class="stat-card">
-    <div class="stat-value" id="trailerMoves">0</div>
-    <div class="stat-label">Trailer Moves</div>
-  </div>
-  <div class="stat-card">
-    <div class="stat-value" id="powerMoves">0</div>
-    <div class="stat-label">Power Requests</div>
-  </div>
-</div>
-
 <div id="controls">
   <button class="util-btn clear-btn" onclick="clearHistory()">🧹 Clear History</button>
   <button class="util-btn reset-btn" onclick="resetAll()">🔄 Reset All</button>
-</div>
-
-<div class="section">
-  <h3>🏢 Building B (25 Bays)</h3>
-  <div class="bays-grid" id="buildingB"></div>
-</div>
-
-<div class="section">
-  <h3>🏪 Building C (26 Bays)</h3>
-  <div class="bays-grid" id="buildingC"></div>
-</div>
-
-<div class="main-layout">
-  <div class="section">
-    <h3>👥 Drivers & Power</h3>
-    <div class="drivers">
-      <button class="driver-btn" draggable="true" data-type="driver" data-name="Andree">Andree</button>
-      <button class="driver-btn" draggable="true" data-type="driver" data-name="Adorjan">Adorjan</button>
-      <button class="driver-btn" draggable="true" data-type="driver" data-name="Mark">Mark</button>
-      <button class="driver-btn power-btn-draggable" draggable="true" data-type="power" data-name="Power">⚡ Power</button>
+  <div class="stats">
+    <div class="stat-card">
+      <div class="stat-value" id="totalMoves">0</div>
+      <div class="stat-label">Total Movements</div>
     </div>
-    
-    <h3 style="margin-top: 15px;">🚛 Custom Trailer</h3>
-    <div style="display: flex; flex-direction: column; gap: 8px;">
-      <input type="text" id="trailerInput" placeholder="Enter trailer number (e.g. Tet123)" 
-             style="padding: 10px; border: 2px solid #ccc; border-radius: 6px; font-size: 14px;">
-      <button onclick="createCustomTrailer()" 
-              style="background: #28a745; color: white; border: none; padding: 10px; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 14px;">
-        ✓ Create Trailer Button
-      </button>
-      <div id="customTrailers" style="display: flex; flex-direction: column; gap: 6px; margin-top: 8px;"></div>
+    <div class="stat-card">
+      <div class="stat-value" id="trailerMoves">0</div>
+      <div class="stat-label">Trailer Moves</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" id="powerMoves">0</div>
+      <div class="stat-label">Power Requests</div>
     </div>
   </div>
+</div>
 
+<div id="pageNav">
+  <button class="util-btn" style="background: #007bff;" onclick="showPage('buildingB')">Building B</button>
+  <button class="util-btn" style="background: #17a2b8;" onclick="showPage('buildingC')">Building C</button>
+  <button class="util-btn" style="background: #6f42c1;" onclick="showPage('names')">Names Building</button>
+</div>
+
+<div id="buildingBPage" class="page active">
   <div class="section">
-    <h3>📍 Building Locations</h3>
-    <div class="drivers">
-      <button class="driver-btn customer-btn" draggable="true" data-type="customer" data-name="Mirela">Mirela</button>
-      <button class="driver-btn customer-btn" draggable="true" data-type="customer" data-name="ASDA">ASDA</button>
-      <button class="driver-btn customer-btn" draggable="true" data-type="customer" data-name="Morrisons">Morrisons</button>
-      <button class="driver-btn customer-btn" draggable="true" data-type="customer" data-name="Tesco">Tesco</button>
-      <button class="driver-btn customer-btn" draggable="true" data-type="customer" data-name="ZAK">ZAK</button>
-    </div>
-    <h3 style="margin-top: 15px;">🅿️ Yard A</h3>
-    <div style="background: #f0f0f0; border: 2px dashed #ccc; border-radius: 8px; padding: 15px; text-align: center; min-height: 80px;" 
-         class="drop-zone" data-location="YardA">
-      <div style="color: #666; font-size: 12px;">Drop trailers here</div>
+    <h3>🏢 Building B (25 Bays)</h3>
+    <div class="bays-grid" id="buildingB"></div>
+  </div>
+</div>
+
+<div id="buildingCPage" class="page">
+  <div class="section">
+    <h3>🏪 Building C (26 Bays)</h3>
+    <div class="bays-grid" id="buildingC"></div>
+  </div>
+</div>
+
+<div id="namesPage" class="page">
+  <div class="section">
+    <h3>👥 Names Building</h3>
+    <div class="names-grid" id="namesGrid"></div>
+  </div>
+  
+  <div class="section">
+    <h3>🅿️ Yard A</h3>
+    <button class="yard-btn" id="yardBtn">Drop trailers here</button>
+  </div>
+  
+  <div class="section">
+    <h3>🚛 Custom Trailer</h3>
+    <div style="display: flex; flex-direction: column; gap: 8px;">
+      <input type="text" id="trailerInput" placeholder="Enter trailer number (e.g. Tet123)" 
+             style="padding: 12px; border: 2px solid #ccc; border-radius: 6px; font-size: 14px;">
+      <button onclick="createCustomTrailer()" 
+              style="background: #28a745; color: white; border: none; padding: 12px; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 14px; touch-action: manipulation;">
+        ✓ Create Trailer Button
+      </button>
+      <div id="customTrailers" style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px;"></div>
     </div>
   </div>
 </div>
@@ -369,6 +412,14 @@ let trailerMoves = 0;
 let powerMoves = 0;
 let customTrailers = [];
 
+// Touch drag variables
+let draggedElement = null;
+let draggedType = null;
+let draggedName = null;
+let touchStartTime = 0;
+let dragGhost = null;
+let currentDropTarget = null;
+
 // Initialize bays
 for (let i = 1; i <= 25; i++) {
   buildingB[`B${i}`] = { trailer: null, hasPower: false };
@@ -377,9 +428,16 @@ for (let i = 1; i <= 26; i++) {
   buildingC[`C${i}`] = { trailer: null, hasPower: false };
 }
 
-let draggedItem = null;
-let draggedType = null;
-let draggedName = null;
+function showPage(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  if (page === 'buildingB') {
+    document.getElementById('buildingBPage').classList.add('active');
+  } else if (page === 'buildingC') {
+    document.getElementById('buildingCPage').classList.add('active');
+  } else if (page === 'names') {
+    document.getElementById('namesPage').classList.add('active');
+  }
+}
 
 function createCustomTrailer() {
   const input = document.getElementById('trailerInput');
@@ -419,172 +477,207 @@ function removeCustomTrailer(trailerNumber) {
 function renderCustomTrailers() {
   const container = document.getElementById('customTrailers');
   container.innerHTML = customTrailers.map(trailer => `
-    <button class="custom-trailer-btn" draggable="true" data-type="trailer" data-name="${trailer}">
+    <button class="custom-trailer-btn" data-type="trailer" data-name="${trailer}">
       🚛 ${trailer}
       <button class="remove-trailer" onclick="event.stopPropagation(); removeCustomTrailer('${trailer}')">×</button>
     </button>
   `).join('');
   
-  // Add drag listeners to new custom trailer buttons
   container.querySelectorAll('.custom-trailer-btn').forEach(btn => {
-    btn.addEventListener('dragstart', (e) => {
-      draggedItem = e.target;
-      draggedType = e.target.dataset.type;
-      draggedName = e.target.dataset.name;
-      e.target.classList.add('dragging');
-    });
-    btn.addEventListener('dragend', (e) => {
-      e.target.classList.remove('dragging');
-    });
-    addTouchSupport(btn);
+    addDragHandlers(btn);
   });
 }
 
-// Touch support for mobile devices
-let touchStartX, touchStartY;
-let currentTouchElement = null;
-
-function addTouchSupport(element) {
-  element.addEventListener('touchstart', function(e) {
-    e.preventDefault();
-    const touch = e.touches[0];
-    touchStartX = touch.clientX;
-    touchStartY = touch.clientY;
-    
-    draggedItem = element;
-    draggedType = element.dataset.type;
-    draggedName = element.dataset.name;
-    currentTouchElement = element;
-    
-    element.style.opacity = '0.5';
-    element.style.transform = 'scale(1.1)';
-    element.style.zIndex = '9999';
-  }, { passive: false });
-  
-  element.addEventListener('touchmove', function(e) {
-    if (!currentTouchElement) return;
-    
-    e.preventDefault();
-    const touch = e.touches[0];
-    
-    // Hide the dragged element temporarily to get element underneath
-    currentTouchElement.style.pointerEvents = 'none';
-    const elementUnder = document.elementFromPoint(touch.clientX, touch.clientY);
-    currentTouchElement.style.pointerEvents = 'auto';
-    
-    // Remove all drag-over classes
-    document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
-    
-    // Add drag-over class to valid drop targets
-    if (elementUnder) {
-      const baySlot = elementUnder.closest('.bay-slot');
-      const driverBtn = elementUnder.closest('.driver-btn');
-      const dropZone = elementUnder.closest('.drop-zone');
-      
-      if (baySlot) {
-        baySlot.classList.add('drag-over');
-      } else if (driverBtn && draggedType === 'bay') {
-        driverBtn.classList.add('drag-over');
-      } else if (dropZone) {
-        dropZone.classList.add('drag-over');
-      }
-    }
-  }, { passive: false });
-  
-  element.addEventListener('touchend', function(e) {
-    if (!currentTouchElement) return;
-    
-    e.preventDefault();
-    const touch = e.changedTouches[0];
-    
-    // Hide the dragged element temporarily to get element underneath
-    currentTouchElement.style.pointerEvents = 'none';
-    const elementUnder = document.elementFromPoint(touch.clientX, touch.clientY);
-    currentTouchElement.style.pointerEvents = 'auto';
-    
-    element.style.opacity = '1';
-    element.style.transform = 'scale(1)';
-    element.style.zIndex = '';
-    
-    // Remove all drag-over classes
-    document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
-    
-    if (elementUnder) {
-      // Check if dropped on a bay slot
-      const baySlot = elementUnder.closest('.bay-slot');
-      if (baySlot) {
-        const bayId = baySlot.dataset.bay;
-        const building = baySlot.dataset.building;
-        const bayData = building === 'B' ? buildingB[bayId] : buildingC[bayId];
-        const timestamp = new Date().toLocaleTimeString();
-        
-        if (draggedType === 'power') {
-          bayData.hasPower = !bayData.hasPower;
-          const action = bayData.hasPower ? 'connected to' : 'disconnected from';
-          history.push(`⚡ Power ${action} ${bayId} at ${timestamp}`);
-          totalMoves++;
-          powerMoves++;
-        } else if (draggedType === 'driver' || draggedType === 'customer' || draggedType === 'trailer' || draggedType === 'bay') {
-          bayData.trailer = draggedName;
-          let icon = '🚛';
-          if (draggedType === 'driver') icon = '👤';
-          if (draggedType === 'customer') icon = '🏪';
-          if (draggedType === 'bay') icon = '📍';
-          history.push(`${icon} ${draggedName} moved to ${bayId} at ${timestamp}`);
-          totalMoves++;
-          trailerMoves++;
-        }
-        render();
-      }
-      
-      // Check if dropped on a driver button
-      const driverBtn = elementUnder.closest('.driver-btn');
-      if (driverBtn && draggedType === 'bay') {
-        const driverName = driverBtn.dataset.name;
-        const timestamp = new Date().toLocaleTimeString();
-        history.push(`📍 ${draggedName} assigned to ${driverName} at ${timestamp}`);
-        totalMoves++;
-        trailerMoves++;
-        render();
-      }
-      
-      // Check if dropped on Yard A
-      const dropZone = elementUnder.closest('.drop-zone');
-      if (dropZone && (draggedType === 'driver' || draggedType === 'customer' || draggedType === 'trailer' || draggedType === 'bay')) {
-        const timestamp = new Date().toLocaleTimeString();
-        let icon = '🚛';
-        if (draggedType === 'driver') icon = '👤';
-        if (draggedType === 'customer') icon = '🏪';
-        if (draggedType === 'bay') icon = '📍';
-        history.push(`${icon} ${draggedName} moved to Yard A at ${timestamp}`);
-        totalMoves++;
-        trailerMoves++;
-        yardA.push(draggedName);
-        render();
-      }
-    }
-    
-    currentTouchElement = null;
-    draggedItem = null;
-    draggedType = null;
-    draggedName = null;
-  }, { passive: false });
+function addDragHandlers(element) {
+  element.addEventListener('touchstart', handleTouchStart, {passive: false});
+  element.addEventListener('touchmove', handleTouchMove, {passive: false});
+  element.addEventListener('touchend', handleTouchEnd, {passive: false});
+  element.addEventListener('touchcancel', handleTouchCancel, {passive: false});
 }
+
+function handleTouchStart(e) {
+  // Don't start drag if touching the remove button
+  if (e.target.classList.contains('remove-trailer')) {
+    return;
+  }
+  
+  e.preventDefault();
+  touchStartTime = Date.now();
+  
+  setTimeout(() => {
+    if (touchStartTime > 0) {
+      draggedElement = e.currentTarget;
+      draggedType = draggedElement.dataset.type;
+      draggedName = draggedElement.dataset.name;
+      
+      draggedElement.classList.add('dragging');
+      
+      // Create ghost element
+      dragGhost = document.createElement('div');
+      dragGhost.className = 'drag-ghost';
+      dragGhost.textContent = draggedName;
+      document.body.appendChild(dragGhost);
+      
+      const touch = e.touches[0];
+      dragGhost.style.left = touch.clientX + 'px';
+      dragGhost.style.top = touch.clientY + 'px';
+    }
+  }, 300); // 300ms delay before drag starts
+}
+
+function handleTouchMove(e) {
+  if (!draggedElement || !dragGhost) {
+    return;
+  }
+  
+  e.preventDefault();
+  
+  const touch = e.touches[0];
+  dragGhost.style.left = touch.clientX + 'px';
+  dragGhost.style.top = touch.clientY + 'px';
+  
+  // Find element under touch
+  dragGhost.style.display = 'none';
+  const elementBelow = document.elementFromPoint(touch.clientX, touch.clientY);
+  dragGhost.style.display = 'block';
+  
+  // Remove previous highlights
+  if (currentDropTarget) {
+    currentDropTarget.classList.remove('drop-highlight');
+  }
+  
+  // Find valid drop target
+  if (elementBelow) {
+    const dropTarget = elementBelow.closest('.bay-btn, .driver-btn, .yard-btn');
+    if (dropTarget && isValidDropTarget(dropTarget)) {
+      dropTarget.classList.add('drop-highlight');
+      currentDropTarget = dropTarget;
+    } else {
+      currentDropTarget = null;
+    }
+  }
+}
+
+function handleTouchEnd(e) {
+  if (!draggedElement) {
+    touchStartTime = 0;
+    return;
+  }
+  
+  e.preventDefault();
+  
+  const touch = e.changedTouches[0];
+  
+  // Find element under touch
+  if (dragGhost) {
+    dragGhost.style.display = 'none';
+  }
+  const elementBelow = document.elementFromPoint(touch.clientX, touch.clientY);
+  
+  if (elementBelow) {
+    const dropTarget = elementBelow.closest('.bay-btn, .driver-btn, .yard-btn');
+    if (dropTarget && isValidDropTarget(dropTarget)) {
+      handleDrop(dropTarget);
+    }
+  }
+  
+  cleanupDrag();
+}
+
+function handleTouchCancel(e) {
+  cleanupDrag();
+}
+
+function isValidDropTarget(target) {
+  if (target.classList.contains('bay-btn')) {
+    return true;
+  }
+  if (target.classList.contains('yard-btn')) {
+    return draggedType !== 'power';
+  }
+  if (target.classList.contains('driver-btn')) {
+    return draggedType === 'bay';
+  }
+  return false;
+}
+
+function handleDrop(target) {
+  const timestamp = new Date().toLocaleTimeString();
+  
+  if (target.classList.contains('bay-btn')) {
+    const bayId = target.dataset.bay;
+    const building = target.dataset.building;
+    const bayData = building === 'B' ? buildingB[bayId] : buildingC[bayId];
+    
+    if (draggedType === 'power') {
+      bayData.hasPower = !bayData.hasPower;
+      const action = bayData.hasPower ? 'connected to' : 'disconnected from';
+      history.push(`⚡ Power ${action} ${bayId} at ${timestamp}`);
+      totalMoves++;
+      powerMoves++;
+    } else {
+      bayData.trailer = draggedName;
+      let icon = '🚛';
+      if (draggedType === 'driver') icon = '👤';
+      if (draggedType === 'customer') icon = '🏪';
+      if (draggedType === 'bay') icon = '📍';
+      history.push(`${icon} ${draggedName} moved to ${bayId} at ${timestamp}`);
+      totalMoves++;
+      trailerMoves++;
+    }
+  } else if (target.classList.contains('yard-btn')) {
+    let icon = '🚛';
+    if (draggedType === 'driver') icon = '👤';
+    if (draggedType === 'customer') icon = '🏪';
+    if (draggedType === 'bay') icon = '📍';
+    history.push(`${icon} ${draggedName} moved to Yard A at ${timestamp}`);
+    totalMoves++;
+    trailerMoves++;
+    yardA.push(draggedName);
+  } else if (target.classList.contains('driver-btn') && draggedType === 'bay') {
+    const driverName = target.dataset.name;
+    history.push(`📍 ${draggedName} assigned to ${driverName} at ${timestamp}`);
+    totalMoves++;
+    trailerMoves++;
+  }
+  
+  render();
+}
+
+function cleanupDrag() {
+  if (draggedElement) {
+    draggedElement.classList.remove('dragging');
+  }
+  if (dragGhost) {
+    dragGhost.remove();
+  }
+  if (currentDropTarget) {
+    currentDropTarget.classList.remove('drop-highlight');
+  }
+  
+  draggedElement = null;
+  draggedType = null;
+  draggedName = null;
+  dragGhost = null;
+  currentDropTarget = null;
+  touchStartTime = 0;
+}
+
 function render() {
   // Render Building B
   const buildingBContainer = document.getElementById('buildingB');
   buildingBContainer.innerHTML = Object.keys(buildingB).map(bayId => {
     const bay = buildingB[bayId];
-    const classes = ['bay-slot'];
+    const classes = ['bay-btn'];
     if (bay.trailer) classes.push('occupied');
     if (bay.hasPower) classes.push('has-power');
     
     return `
-      <div class="${classes.join(' ')}" data-bay="${bayId}" data-building="B">
+      <button class="${classes.join(' ')}" data-bay="${bayId}" data-building="B" data-type="bay" data-name="${bayId}">
         ${bay.hasPower ? '<span class="power-indicator">⚡</span>' : ''}
         <div class="bay-content">${bay.trailer || ''}</div>
-        <div class="bay-label" draggable="true" data-type="bay" data-name="${bayId}" data-building="B" style="cursor: grab;">${bayId}</div>
-      </div>
+        <div class="bay-label">${bayId}</div>
+      </button>
     `;
   }).join('');
 
@@ -592,58 +685,46 @@ function render() {
   const buildingCContainer = document.getElementById('buildingC');
   buildingCContainer.innerHTML = Object.keys(buildingC).map(bayId => {
     const bay = buildingC[bayId];
-    const classes = ['bay-slot'];
+    const classes = ['bay-btn'];
     if (bay.trailer) classes.push('occupied');
     if (bay.hasPower) classes.push('has-power');
     
     return `
-      <div class="${classes.join(' ')}" data-bay="${bayId}" data-building="C">
+      <button class="${classes.join(' ')}" data-bay="${bayId}" data-building="C" data-type="bay" data-name="${bayId}">
         ${bay.hasPower ? '<span class="power-indicator">⚡</span>' : ''}
         <div class="bay-content">${bay.trailer || ''}</div>
-        <div class="bay-label" draggable="true" data-type="bay" data-name="${bayId}" data-building="C" style="cursor: grab;">${bayId}</div>
-      </div>
+        <div class="bay-label">${bayId}</div>
+      </button>
     `;
   }).join('');
 
-  // Add drop listeners to all bay slots
-  document.querySelectorAll('.bay-slot').forEach(slot => {
-    slot.addEventListener('dragover', handleDragOver);
-    slot.addEventListener('dragenter', handleDragEnter);
-    slot.addEventListener('dragleave', handleDragLeave);
-    slot.addEventListener('drop', handleDrop);
+  // Add drag handlers to all bay buttons
+  document.querySelectorAll('.bay-btn').forEach(btn => {
+    addDragHandlers(btn);
   });
 
-  // Add drag listeners to bay labels
-  document.querySelectorAll('.bay-label[draggable="true"]').forEach(label => {
-    label.addEventListener('dragstart', (e) => {
-      draggedItem = e.target;
-      draggedType = e.target.dataset.type;
-      draggedName = e.target.dataset.name;
-      e.target.style.opacity = '0.5';
-    });
-    label.addEventListener('dragend', (e) => {
-      e.target.style.opacity = '1';
-    });
-    
-    // Add touch support for mobile
-    addTouchSupport(label);
+  // Render Names Building
+  const namesGrid = document.getElementById('namesGrid');
+  namesGrid.innerHTML = `
+    <button class="driver-btn" data-type="driver" data-name="Andree">👤 Andree</button>
+    <button class="driver-btn" data-type="driver" data-name="Adorjan">👤 Adorjan</button>
+    <button class="driver-btn" data-type="driver" data-name="Mark">👤 Mark</button>
+    <button class="driver-btn power-btn" data-type="power" data-name="Power">⚡ Power</button>
+    <button class="driver-btn customer-btn" data-type="customer" data-name="Mirela">🏪 Mirela</button>
+    <button class="driver-btn customer-btn" data-type="customer" data-name="ASDA">🏪 ASDA</button>
+    <button class="driver-btn customer-btn" data-type="customer" data-name="Morrisons">🏪 Morrisons</button>
+    <button class="driver-btn customer-btn" data-type="customer" data-name="Tesco">🏪 Tesco</button>
+    <button class="driver-btn customer-btn" data-type="customer" data-name="ZAK">🏪 ZAK</button>
+  `;
+
+  // Add drag handlers to name buttons
+  document.querySelectorAll('#namesGrid .driver-btn').forEach(btn => {
+    addDragHandlers(btn);
   });
 
-  // Add drop listener to Yard A
-  document.querySelectorAll('.drop-zone').forEach(zone => {
-    zone.addEventListener('dragover', handleDragOver);
-    zone.addEventListener('dragenter', handleDragEnter);
-    zone.addEventListener('dragleave', handleDragLeave);
-    zone.addEventListener('drop', handleDropYard);
-  });
-
-  // Add drop listeners to driver buttons (for bay assignments)
-  document.querySelectorAll('.driver-btn').forEach(btn => {
-    btn.addEventListener('dragover', handleDragOver);
-    btn.addEventListener('dragenter', handleDragEnter);
-    btn.addEventListener('dragleave', handleDragLeave);
-    btn.addEventListener('drop', handleDropDriver);
-  });
+  // Add drag handler to Yard button
+  const yardBtn = document.getElementById('yardBtn');
+  addDragHandlers(yardBtn);
 
   // Render history
   const histList = document.getElementById('moveHistory');
@@ -657,112 +738,6 @@ function render() {
   document.getElementById('totalMoves').textContent = totalMoves;
   document.getElementById('trailerMoves').textContent = trailerMoves;
   document.getElementById('powerMoves').textContent = powerMoves;
-}
-
-// Drag handlers for driver/customer buttons
-document.querySelectorAll('[draggable="true"]').forEach(btn => {
-  btn.addEventListener('dragstart', (e) => {
-    draggedItem = e.target;
-    draggedType = e.target.dataset.type;
-    draggedName = e.target.dataset.name;
-    e.target.classList.add('dragging');
-  });
-  btn.addEventListener('dragend', (e) => {
-    e.target.classList.remove('dragging');
-  });
-  
-  // Add touch support for mobile
-  addTouchSupport(btn);
-});
-
-function handleDragOver(e) {
-  e.preventDefault();
-  e.dataTransfer.dropEffect = 'move';
-  return false;
-}
-
-function handleDragEnter(e) {
-  e.currentTarget.classList.add('drag-over');
-}
-
-function handleDragLeave(e) {
-  e.currentTarget.classList.remove('drag-over');
-}
-
-function handleDrop(e) {
-  e.preventDefault();
-  e.currentTarget.classList.remove('drag-over');
-  
-  const bayId = e.currentTarget.dataset.bay;
-  const building = e.currentTarget.dataset.building;
-  const bayData = building === 'B' ? buildingB[bayId] : buildingC[bayId];
-  
-  const timestamp = new Date().toLocaleTimeString();
-  
-  if (draggedType === 'power') {
-    bayData.hasPower = !bayData.hasPower;
-    const action = bayData.hasPower ? 'connected to' : 'disconnected from';
-    const msg = `⚡ Power ${action} ${bayId} at ${timestamp}`;
-    history.push(msg);
-    totalMoves++;
-    powerMoves++;
-  } else if (draggedType === 'driver' || draggedType === 'customer' || draggedType === 'trailer') {
-    bayData.trailer = draggedName;
-    let icon = '🚛';
-    if (draggedType === 'driver') icon = '👤';
-    if (draggedType === 'customer') icon = '🏪';
-    const msg = `${icon} ${draggedName} moved to ${bayId} at ${timestamp}`;
-    history.push(msg);
-    totalMoves++;
-    trailerMoves++;
-  } else if (draggedType === 'bay') {
-    bayData.trailer = draggedName;
-    const msg = `📍 ${draggedName} moved to ${bayId} at ${timestamp}`;
-    history.push(msg);
-    totalMoves++;
-    trailerMoves++;
-  }
-  
-  render();
-  return false;
-}
-
-function handleDropYard(e) {
-  e.preventDefault();
-  e.currentTarget.classList.remove('drag-over');
-  
-  if (draggedType === 'driver' || draggedType === 'customer' || draggedType === 'trailer' || draggedType === 'bay') {
-    const timestamp = new Date().toLocaleTimeString();
-    let icon = '🚛';
-    if (draggedType === 'driver') icon = '👤';
-    if (draggedType === 'customer') icon = '🏪';
-    if (draggedType === 'bay') icon = '📍';
-    const msg = `${icon} ${draggedName} moved to Yard A at ${timestamp}`;
-    history.push(msg);
-    totalMoves++;
-    trailerMoves++;
-    yardA.push(draggedName);
-    render();
-  }
-  return false;
-}
-
-function handleDropDriver(e) {
-  e.preventDefault();
-  e.currentTarget.classList.remove('drag-over');
-  
-  // Only handle bay drops onto drivers (not driver-to-driver or other types)
-  if (draggedType === 'bay') {
-    const driverName = e.currentTarget.dataset.name;
-    const timestamp = new Date().toLocaleTimeString();
-    const msg = `📍 ${draggedName} assigned to ${driverName} at ${timestamp}`;
-    history.push(msg);
-    totalMoves++;
-    trailerMoves++;
-    render();
-  }
-  
-  return false;
 }
 
 function clearHistory() {
