@@ -353,9 +353,9 @@
 </div>
 
 <div id="pageNav">
-  <button class="util-btn" style="background: #007bff;" onclick="showPage('buildingB')">Building B</button>
-  <button class="util-btn" style="background: #17a2b8;" onclick="showPage('buildingC')">Building C</button>
-  <button class="util-btn" style="background: #6f42c1;" onclick="showPage('names')">Names Building</button>
+  <button class="util-btn" data-page="buildingB" style="background: #007bff;" onclick="showPage('buildingB')">Building B</button>
+  <button class="util-btn" data-page="buildingC" style="background: #17a2b8;" onclick="showPage('buildingC')">Building C</button>
+  <button class="util-btn" data-page="names" style="background: #6f42c1;" onclick="showPage('names')">Names Building</button>
 </div>
 
 <div id="buildingBPage" class="page active">
@@ -411,11 +411,14 @@ let totalMoves = 0;
 let trailerMoves = 0;
 let powerMoves = 0;
 let customTrailers = [];
+let activePage = 'buildingB';
 
 // Touch drag variables
 let draggedElement = null;
 let draggedType = null;
 let draggedName = null;
+let draggedSourceBay = null;
+let draggedSourceBuilding = null;
 let touchStartTime = 0;
 let dragGhost = null;
 let currentDropTarget = null;
@@ -428,7 +431,8 @@ for (let i = 1; i <= 26; i++) {
   buildingC[`C${i}`] = { trailer: null, hasPower: false };
 }
 
-function showPage(page) {
+function showPage(page, skipRender = false) {
+  activePage = page;
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   if (page === 'buildingB') {
     document.getElementById('buildingBPage').classList.add('active');
@@ -436,6 +440,10 @@ function showPage(page) {
     document.getElementById('buildingCPage').classList.add('active');
   } else if (page === 'names') {
     document.getElementById('namesPage').classList.add('active');
+  }
+
+  if (!skipRender && !draggedElement) {
+    render();
   }
 }
 
@@ -502,27 +510,37 @@ function handleTouchStart(e) {
   }
   
   e.preventDefault();
+  
+  const element = e.currentTarget;
+  const touch = e.touches[0];
+  const startX = touch.clientX;
+  const startY = touch.clientY;
+  
   touchStartTime = Date.now();
   
   setTimeout(() => {
     if (touchStartTime > 0) {
-      draggedElement = e.currentTarget;
+      draggedElement = element;
       draggedType = draggedElement.dataset.type;
       draggedName = draggedElement.dataset.name;
+      draggedSourceBay = draggedElement.dataset.bay;
+      draggedSourceBuilding = draggedElement.dataset.building;
       
-      draggedElement.classList.add('dragging');
-      
-      // Create ghost element
-      dragGhost = document.createElement('div');
-      dragGhost.className = 'drag-ghost';
-      dragGhost.textContent = draggedName;
-      document.body.appendChild(dragGhost);
-      
-      const touch = e.touches[0];
-      dragGhost.style.left = touch.clientX + 'px';
-      dragGhost.style.top = touch.clientY + 'px';
+      // Allow dragging all bays
+      if (draggedType === 'bay' && draggedSourceBay) {
+        draggedElement.classList.add('dragging');
+        
+        // Create ghost element
+        dragGhost = document.createElement('div');
+        dragGhost.className = 'drag-ghost';
+        dragGhost.textContent = draggedSourceBay; // Show bay ID
+        document.body.appendChild(dragGhost);
+        
+        dragGhost.style.left = startX + 'px';
+        dragGhost.style.top = startY + 'px';
+      }
     }
-  }, 300); // 300ms delay before drag starts
+  }, 200); // 200ms delay before drag starts
 }
 
 function handleTouchMove(e) {
@@ -536,19 +554,26 @@ function handleTouchMove(e) {
   dragGhost.style.left = touch.clientX + 'px';
   dragGhost.style.top = touch.clientY + 'px';
   
-  // Find element under touch
   dragGhost.style.display = 'none';
   const elementBelow = document.elementFromPoint(touch.clientX, touch.clientY);
   dragGhost.style.display = 'block';
   
-  // Remove previous highlights
+  if (elementBelow) {
+    const navButton = elementBelow.closest('[data-page]');
+    if (navButton) {
+      const targetPage = navButton.dataset.page;
+      if (targetPage && targetPage !== activePage) {
+        showPage(targetPage, true);
+      }
+    }
+  }
+  
   if (currentDropTarget) {
     currentDropTarget.classList.remove('drop-highlight');
   }
   
-  // Find valid drop target
   if (elementBelow) {
-    const dropTarget = elementBelow.closest('.bay-btn, .driver-btn, .yard-btn');
+    const dropTarget = elementBelow.closest('.driver-btn');
     if (dropTarget && isValidDropTarget(dropTarget)) {
       dropTarget.classList.add('drop-highlight');
       currentDropTarget = dropTarget;
@@ -589,12 +614,7 @@ function handleTouchCancel(e) {
 }
 
 function isValidDropTarget(target) {
-  if (target.classList.contains('bay-btn')) {
-    return true;
-  }
-  if (target.classList.contains('yard-btn')) {
-    return draggedType !== 'power';
-  }
+  // Only allow dragging bays to driver buttons (names)
   if (target.classList.contains('driver-btn')) {
     return draggedType === 'bay';
   }
@@ -604,44 +624,19 @@ function isValidDropTarget(target) {
 function handleDrop(target) {
   const timestamp = new Date().toLocaleTimeString();
   
-  if (target.classList.contains('bay-btn')) {
-    const bayId = target.dataset.bay;
-    const building = target.dataset.building;
-    const bayData = building === 'B' ? buildingB[bayId] : buildingC[bayId];
-    
-    if (draggedType === 'power') {
-      bayData.hasPower = !bayData.hasPower;
-      const action = bayData.hasPower ? 'connected to' : 'disconnected from';
-      history.push(`⚡ Power ${action} ${bayId} at ${timestamp}`);
-      totalMoves++;
-      powerMoves++;
-    } else {
-      bayData.trailer = draggedName;
-      let icon = '🚛';
-      if (draggedType === 'driver') icon = '👤';
-      if (draggedType === 'customer') icon = '🏪';
-      if (draggedType === 'bay') icon = '📍';
-      history.push(`${icon} ${draggedName} moved to ${bayId} at ${timestamp}`);
-      totalMoves++;
-      trailerMoves++;
-    }
-  } else if (target.classList.contains('yard-btn')) {
-    let icon = '🚛';
-    if (draggedType === 'driver') icon = '👤';
-    if (draggedType === 'customer') icon = '🏪';
-    if (draggedType === 'bay') icon = '📍';
-    history.push(`${icon} ${draggedName} moved to Yard A at ${timestamp}`);
-    totalMoves++;
-    trailerMoves++;
-    yardA.push(draggedName);
-  } else if (target.classList.contains('driver-btn') && draggedType === 'bay') {
+  // Only handle bay to driver/customer drops
+  if (target.classList.contains('driver-btn') && draggedType === 'bay') {
     const driverName = target.dataset.name;
-    history.push(`📍 ${draggedName} assigned to ${driverName} at ${timestamp}`);
+    const bayId = draggedSourceBay;
+    
+    // Just add to history, don't change anything else
+    history.push(`📍 Bay ${bayId} assigned to ${driverName} at ${timestamp}`);
     totalMoves++;
     trailerMoves++;
   }
   
   render();
+  showPage(activePage, true);
 }
 
 function cleanupDrag() {
@@ -658,6 +653,8 @@ function cleanupDrag() {
   draggedElement = null;
   draggedType = null;
   draggedName = null;
+  draggedSourceBay = null;
+  draggedSourceBuilding = null;
   dragGhost = null;
   currentDropTarget = null;
   touchStartTime = 0;
@@ -673,7 +670,7 @@ function render() {
     if (bay.hasPower) classes.push('has-power');
     
     return `
-      <button class="${classes.join(' ')}" data-bay="${bayId}" data-building="B" data-type="bay" data-name="${bayId}">
+      <button class="${classes.join(' ')}" data-bay="${bayId}" data-building="B" data-type="bay" data-name="${bay.trailer || ''}">
         ${bay.hasPower ? '<span class="power-indicator">⚡</span>' : ''}
         <div class="bay-content">${bay.trailer || ''}</div>
         <div class="bay-label">${bayId}</div>
@@ -690,7 +687,7 @@ function render() {
     if (bay.hasPower) classes.push('has-power');
     
     return `
-      <button class="${classes.join(' ')}" data-bay="${bayId}" data-building="C" data-type="bay" data-name="${bayId}">
+      <button class="${classes.join(' ')}" data-bay="${bayId}" data-building="C" data-type="bay" data-name="${bay.trailer || ''}">
         ${bay.hasPower ? '<span class="power-indicator">⚡</span>' : ''}
         <div class="bay-content">${bay.trailer || ''}</div>
         <div class="bay-label">${bayId}</div>
