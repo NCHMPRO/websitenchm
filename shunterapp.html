@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Building Move Tracker</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      background: #f4f4f4;
+      color: #333;
+    }
+
+    h2 {
+      text-align: center;
+      margin-top: 10px;
+    }
+
+    .section {
+      padding: 15px;
+    }
+
+    .drivers {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+    }
+
+    .driver-btn {
+      padding: 8px 12px;
+      background-color: #00bfa6;
+      border: none;
+      border-radius: 6px;
+      color: white;
+      cursor: grab;
+      font-weight: bold;
+      transition: 0.2s;
+      user-select: none;
+    }
+
+    .driver-btn:hover {
+      background-color: #009e8c;
+    }
+
+    .driver-btn.dragging {
+      opacity: 0.5;
+      transform: scale(0.9);
+    }
+
+    .driver-btn.over {
+      border: 2px dashed #007f6e;
+      background-color: #c2fff5;
+    }
+
+    #historyContainer {
+      background: white;
+      padding: 10px;
+      border-radius: 10px;
+      margin: 20px;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    #historyContainer h3 {
+      margin-top: 0;
+      text-align: center;
+    }
+
+    #historyList {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      max-height: 250px;
+      overflow-y: auto;
+    }
+
+    #historyList li {
+      padding: 6px 8px;
+      border-bottom: 1px solid #ddd;
+      font-size: 15px;
+    }
+
+    #clearMsg {
+      text-align: center;
+      color: #888;
+      font-size: 14px;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="section">
+    <h2>📍 Building Locations</h2>
+    <div class="drivers" id="driversContainer"></div>
+  </div>
+
+  <div id="historyContainer">
+    <h3>📜 Move History (Today)</h3>
+    <ul id="historyList"></ul>
+    <p id="clearMsg"></p>
+  </div>
+
+  <script>
+    let draggedItem = null;
+
+    // Creează un buton standard (ca Mirela)
+    function createButton(name) {
+      const btn = document.createElement('button');
+      btn.textContent = name;
+      btn.className = 'driver-btn';
+      btn.draggable = true;
+
+      // Drag start
+      btn.addEventListener('dragstart', (e) => {
+        draggedItem = e.target;
+        e.target.classList.add('dragging');
+      });
+
+      // Drag end
+      btn.addEventListener('dragend', (e) => {
+        e.target.classList.remove('dragging');
+        draggedItem = null;
+      });
+
+      // Drag over alt buton
+      btn.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        btn.classList.add('over');
+      });
+
+      // Părăsire buton
+      btn.addEventListener('dragleave', () => {
+        btn.classList.remove('over');
+      });
+
+      // Drop peste alt buton (înregistrează acțiunea)
+      btn.addEventListener('drop', (e) => {
+        e.preventDefault();
+        btn.classList.remove('over');
+        if (draggedItem && draggedItem !== btn) {
+          const from = draggedItem.textContent;
+          const to = btn.textContent;
+          const action = `${new Date().toLocaleTimeString()} ➜ ${from} moved over ${to}`;
+          addHistory(action);
+        }
+      });
+
+      return btn;
+    }
+
+    // Creăm toate butoanele din B și C
+    function createBuildingButtons() {
+      const container = document.getElementById('driversContainer');
+
+      const headingB = document.createElement('h3');
+      headingB.textContent = '🏗️ Building B';
+      headingB.style.width = '100%';
+      headingB.style.textAlign = 'center';
+      container.appendChild(headingB);
+
+      for (let i = 1; i <= 25; i++) container.appendChild(createButton(`B${i}`));
+
+      const headingC = document.createElement('h3');
+      headingC.textContent = '🏗️ Building C';
+      headingC.style.width = '100%';
+      headingC.style.textAlign = 'center';
+      container.appendChild(headingC);
+
+      for (let i = 1; i <= 26; i++) container.appendChild(createButton(`C${i}`));
+    }
+
+    // Înregistrează acțiunea în istoric și în localStorage
+    function addHistory(action) {
+      const historyList = document.getElementById('historyList');
+      const li = document.createElement('li');
+      li.textContent = action;
+      historyList.prepend(li); // cel mai nou sus
+
+      // Salvare în localStorage
+      const today = new Date().toISOString().split('T')[0];
+      let historyData = JSON.parse(localStorage.getItem('dailyHistory')) || {};
+      if (!historyData.date || historyData.date !== today) {
+        historyData = { date: today, actions: [] };
+      }
+      historyData.actions.unshift(action);
+      localStorage.setItem('dailyHistory', JSON.stringify(historyData));
+    }
+
+    // Încarcă istoricul salvat dacă e din ziua curentă
+    function loadHistory() {
+      const historyList = document.getElementById('historyList');
+      const data = JSON.parse(localStorage.getItem('dailyHistory'));
+      const today = new Date().toISOString().split('T')[0];
+
+      if (data && data.date === today) {
+        data.actions.forEach((act) => {
+          const li = document.createElement('li');
+          li.textContent = act;
+          historyList.appendChild(li);
+        });
+      } else {
+        localStorage.removeItem('dailyHistory');
+      }
+    }
+
+    // Verifică dacă trebuie resetat istoricul după ora 00:00
+    function checkMidnightReset() {
+      const now = new Date();
+      const nextMidnight = new Date();
+      nextMidnight.setHours(24, 0, 0, 0);
+      const msUntilMidnight = nextMidnight - now;
+
+      setTimeout(() => {
+        localStorage.removeItem('dailyHistory');
+        document.getElementById('historyList').innerHTML = '';
+        document.getElementById('clearMsg').textContent = "✅ History cleared for the new day!";
+        checkMidnightReset(); // rulează din nou pentru următoarea zi
+      }, msUntilMidnight);
+    }
+
+    createBuildingButtons();
+    loadHistory();
+    checkMidnightReset();
+  </script>
+</body>
+</html>
