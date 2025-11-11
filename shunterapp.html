@@ -95,7 +95,7 @@
 <body>
 
   <div class="section">
-    <h2>📍 Building Locations</h2>
+    <h2>🏢 Building Locations</h2>
     <div class="drivers" id="driversContainer"></div>
   </div>
 
@@ -108,7 +108,7 @@
   <script>
     let draggedItem = null;
 
-    // Creează un buton standard (ca Mirela)
+    // Creates a standard button
     function createButton(name) {
       const btn = document.createElement('button');
       btn.textContent = name;
@@ -127,18 +127,18 @@
         draggedItem = null;
       });
 
-      // Drag over alt buton
+      // Drag over another button
       btn.addEventListener('dragover', (e) => {
         e.preventDefault();
         btn.classList.add('over');
       });
 
-      // Părăsire buton
+      // Leave button
       btn.addEventListener('dragleave', () => {
         btn.classList.remove('over');
       });
 
-      // Drop peste alt buton (înregistrează acțiunea)
+      // Drop on another button (records the action)
       btn.addEventListener('drop', (e) => {
         e.preventDefault();
         btn.classList.remove('over');
@@ -153,7 +153,7 @@
       return btn;
     }
 
-    // Creăm toate butoanele din B și C
+    // Create all buttons from B, Middle, and C
     function createBuildingButtons() {
       const container = document.getElementById('driversContainer');
 
@@ -165,6 +165,15 @@
 
       for (let i = 1; i <= 25; i++) container.appendChild(createButton(`B${i}`));
 
+      const headingMiddle = document.createElement('h3');
+      headingMiddle.textContent = '🚛 Middle Area';
+      headingMiddle.style.width = '100%';
+      headingMiddle.style.textAlign = 'center';
+      container.appendChild(headingMiddle);
+
+      const middleButtons = ['Ya', 'Mi', 'Ma', 'An', 'Za', 'Odo'];
+      middleButtons.forEach(name => container.appendChild(createButton(name)));
+
       const headingC = document.createElement('h3');
       headingC.textContent = '🏗️ Building C';
       headingC.style.width = '100%';
@@ -174,14 +183,14 @@
       for (let i = 1; i <= 26; i++) container.appendChild(createButton(`C${i}`));
     }
 
-    // Înregistrează acțiunea în istoric și în localStorage
+    // Records the action in history and in localStorage
     function addHistory(action) {
       const historyList = document.getElementById('historyList');
       const li = document.createElement('li');
       li.textContent = action;
-      historyList.prepend(li); // cel mai nou sus
+      historyList.prepend(li); // newest on top
 
-      // Salvare în localStorage
+      // Save to localStorage
       const today = new Date().toISOString().split('T')[0];
       let historyData = JSON.parse(localStorage.getItem('dailyHistory')) || {};
       if (!historyData.date || historyData.date !== today) {
@@ -191,7 +200,7 @@
       localStorage.setItem('dailyHistory', JSON.stringify(historyData));
     }
 
-    // Încarcă istoricul salvat dacă e din ziua curentă
+    // Load saved history if it's from the current day
     function loadHistory() {
       const historyList = document.getElementById('historyList');
       const data = JSON.parse(localStorage.getItem('dailyHistory'));
@@ -208,7 +217,7 @@
       }
     }
 
-    // Verifică dacă trebuie resetat istoricul după ora 00:00
+    // Check if history should be reset after midnight
     function checkMidnightReset() {
       const now = new Date();
       const nextMidnight = new Date();
@@ -219,7 +228,7 @@
         localStorage.removeItem('dailyHistory');
         document.getElementById('historyList').innerHTML = '';
         document.getElementById('clearMsg').textContent = "✅ History cleared for the new day!";
-        checkMidnightReset(); // rulează din nou pentru următoarea zi
+        checkMidnightReset(); // run again for the next day
       }, msUntilMidnight);
     }
 
