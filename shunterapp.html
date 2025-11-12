@@ -148,166 +148,180 @@
   </div>
 
   <script>
-    let draggedItem = null;
+  let draggedItem = null;
 
-    function createButton(name) {
-      const btn = document.createElement('button');
-      btn.textContent = name;
-      btn.className = 'driver-btn';
-      btn.draggable = true;
+  function createButton(name) {
+    const btn = document.createElement('button');
+    btn.textContent = name;
+    btn.className = 'driver-btn';
+    btn.draggable = true;
 
-      // --- long press detection ---
-      let pressTimer = null;
-      let isActive = false;
+    // --- long press detection (works on mouse + touch) ---
+    let pressTimer = null;
+    let isActive = false;
 
-      btn.addEventListener('mousedown', () => {
-        pressTimer = setTimeout(() => {
-          if (!isActive) {
-            isActive = true;
-            btn.classList.add('active');
-            btn.textContent = '⚡ ' + name;
-            setTimeout(() => {
-              btn.classList.remove('active');
-              btn.textContent = name;
-              isActive = false;
-            }, 5000);
-          }
-        }, 5000);
-      });
-
-      ['mouseup', 'mouseleave'].forEach(event =>
-        btn.addEventListener(event, () => clearTimeout(pressTimer))
-      );
-      // --- end long press ---
-
-      // Drag start
-      btn.addEventListener('dragstart', (e) => {
-        draggedItem = e.target;
-        e.target.classList.add('dragging');
-      });
-
-      // Drag end
-      btn.addEventListener('dragend', (e) => {
-        e.target.classList.remove('dragging');
-        draggedItem = null;
-      });
-
-      // Drag over another button
-      btn.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        btn.classList.add('over');
-      });
-
-      // Leave button
-      btn.addEventListener('dragleave', () => {
-        btn.classList.remove('over');
-      });
-
-      // Drop on another button (records the action)
-      btn.addEventListener('drop', (e) => {
-        e.preventDefault();
-        btn.classList.remove('over');
-        if (draggedItem && draggedItem !== btn) {
-          const from = draggedItem.textContent;
-          const to = btn.textContent;
-          const action = `${new Date().toLocaleTimeString()} ➜ ${from} moved over ${to}`;
-          addHistory(action);
+    function startPress() {
+      pressTimer = setTimeout(() => {
+        if (!isActive) {
+          isActive = true;
+          btn.classList.add('active');
+          btn.textContent = '⚡ ' + name;
+          setTimeout(() => {
+            btn.classList.remove('active');
+            btn.textContent = name;
+            isActive = false;
+          }, 5000);
         }
-      });
-
-      return btn;
+      }, 5000);
     }
 
-    function createBuildingButtons() {
-      const container = document.getElementById('driversContainer');
-
-      const headingB = document.createElement('h3');
-      headingB.textContent = '🏗️ Building B';
-      headingB.style.width = '100%';
-      headingB.style.textAlign = 'center';
-      container.appendChild(headingB);
-
-      for (let i = 1; i <= 25; i++) container.appendChild(createButton(`B${i}`));
-
-      const headingMiddle = document.createElement('h3');
-      headingMiddle.textContent = '🚛 Middle Area';
-      headingMiddle.style.width = '100%';
-      headingMiddle.style.textAlign = 'center';
-      container.appendChild(headingMiddle);
-
-      const middleButtons = ['Ya', 'Mi', 'Ma', 'An', 'Za', 'Odo'];
-      middleButtons.forEach(name => container.appendChild(createButton(name)));
-
-      const headingC = document.createElement('h3');
-      headingC.textContent = '🏗️ Building C';
-      headingC.style.width = '100%';
-      headingC.style.textAlign = 'center';
-      container.appendChild(headingC);
-
-      for (let i = 1; i <= 26; i++) container.appendChild(createButton(`C${i}`));
+    function cancelPress() {
+      clearTimeout(pressTimer);
     }
 
-    function addHistory(action) {
-      const historyList = document.getElementById('historyList');
-      const li = document.createElement('li');
-      li.textContent = action;
-      historyList.prepend(li);
+    // Mouse support
+    btn.addEventListener('mousedown', startPress);
+    btn.addEventListener('mouseup', cancelPress);
+    btn.addEventListener('mouseleave', cancelPress);
 
-      const today = new Date().toISOString().split('T')[0];
-      let historyData = JSON.parse(localStorage.getItem('dailyHistory')) || {};
-      if (!historyData.date || historyData.date !== today) {
-        historyData = { date: today, actions: [] };
-      }
-      historyData.actions.unshift(action);
-      localStorage.setItem('dailyHistory', JSON.stringify(historyData));
-    }
+    // Touch support (for Android/iOS)
+    btn.addEventListener('touchstart', (e) => {
+      e.preventDefault(); // prevent accidental drag
+      startPress();
+    });
+    btn.addEventListener('touchend', cancelPress);
+    btn.addEventListener('touchcancel', cancelPress);
+    // --- end long press ---
 
-    function loadHistory() {
-      const historyList = document.getElementById('historyList');
-      const data = JSON.parse(localStorage.getItem('dailyHistory'));
-      const today = new Date().toISOString().split('T')[0];
+    // Drag start
+    btn.addEventListener('dragstart', (e) => {
+      draggedItem = e.target;
+      e.target.classList.add('dragging');
+    });
 
-      if (data && data.date === today) {
-        data.actions.forEach((act) => {
-          const li = document.createElement('li');
-          li.textContent = act;
-          historyList.appendChild(li);
-        });
-      } else {
-        localStorage.removeItem('dailyHistory');
-      }
-    }
+    // Drag end
+    btn.addEventListener('dragend', (e) => {
+      e.target.classList.remove('dragging');
+      draggedItem = null;
+    });
 
-    function checkMidnightReset() {
-      const now = new Date();
-      const nextMidnight = new Date();
-      nextMidnight.setHours(24, 0, 0, 0);
-      const msUntilMidnight = nextMidnight - now;
+    // Drag over another button
+    btn.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      btn.classList.add('over');
+    });
 
-      setTimeout(() => {
-        localStorage.removeItem('dailyHistory');
-        document.getElementById('historyList').innerHTML = '';
-        document.getElementById('clearMsg').textContent = "✅ History cleared for the new day!";
-        checkMidnightReset();
-      }, msUntilMidnight);
-    }
+    // Leave button
+    btn.addEventListener('dragleave', () => {
+      btn.classList.remove('over');
+    });
 
-    // Add new button by input
-    document.getElementById('addBtn').addEventListener('click', () => {
-      const input = document.getElementById('newNameInput');
-      const name = input.value.trim();
-      if (name) {
-        const container = document.getElementById('driversContainer');
-        const newBtn = createButton(name);
-        container.appendChild(newBtn);
-        addHistory(`${new Date().toLocaleTimeString()} ➜ Created new button "${name}"`);
-        input.value = '';
+    // Drop on another button (records the action)
+    btn.addEventListener('drop', (e) => {
+      e.preventDefault();
+      btn.classList.remove('over');
+      if (draggedItem && draggedItem !== btn) {
+        const from = draggedItem.textContent;
+        const to = btn.textContent;
+        const action = `${new Date().toLocaleTimeString()} ➜ ${from} moved over ${to}`;
+        addHistory(action);
       }
     });
 
-    createBuildingButtons();
-    loadHistory();
-    checkMidnightReset();
-  </script>
+    return btn;
+  }
+
+  function createBuildingButtons() {
+    const container = document.getElementById('driversContainer');
+
+    const headingB = document.createElement('h3');
+    headingB.textContent = '🏗️ Building B';
+    headingB.style.width = '100%';
+    headingB.style.textAlign = 'center';
+    container.appendChild(headingB);
+
+    for (let i = 1; i <= 25; i++) container.appendChild(createButton(`B${i}`));
+
+    const headingMiddle = document.createElement('h3');
+    headingMiddle.textContent = '🚛 Middle Area';
+    headingMiddle.style.width = '100%';
+    headingMiddle.style.textAlign = 'center';
+    container.appendChild(headingMiddle);
+
+    const middleButtons = ['Ya', 'Mi', 'Ma', 'An', 'Za', 'Odo'];
+    middleButtons.forEach(name => container.appendChild(createButton(name)));
+
+    const headingC = document.createElement('h3');
+    headingC.textContent = '🏗️ Building C';
+    headingC.style.width = '100%';
+    headingC.style.textAlign = 'center';
+    container.appendChild(headingC);
+
+    for (let i = 1; i <= 26; i++) container.appendChild(createButton(`C${i}`));
+  }
+
+  function addHistory(action) {
+    const historyList = document.getElementById('historyList');
+    const li = document.createElement('li');
+    li.textContent = action;
+    historyList.prepend(li);
+
+    const today = new Date().toISOString().split('T')[0];
+    let historyData = JSON.parse(localStorage.getItem('dailyHistory')) || {};
+    if (!historyData.date || historyData.date !== today) {
+      historyData = { date: today, actions: [] };
+    }
+    historyData.actions.unshift(action);
+    localStorage.setItem('dailyHistory', JSON.stringify(historyData));
+  }
+
+  function loadHistory() {
+    const historyList = document.getElementById('historyList');
+    const data = JSON.parse(localStorage.getItem('dailyHistory'));
+    const today = new Date().toISOString().split('T')[0];
+
+    if (data && data.date === today) {
+      data.actions.forEach((act) => {
+        const li = document.createElement('li');
+        li.textContent = act;
+        historyList.appendChild(li);
+      });
+    } else {
+      localStorage.removeItem('dailyHistory');
+    }
+  }
+
+  function checkMidnightReset() {
+    const now = new Date();
+    const nextMidnight = new Date();
+    nextMidnight.setHours(24, 0, 0, 0);
+    const msUntilMidnight = nextMidnight - now;
+
+    setTimeout(() => {
+      localStorage.removeItem('dailyHistory');
+      document.getElementById('historyList').innerHTML = '';
+      document.getElementById('clearMsg').textContent = "✅ History cleared for the new day!";
+      checkMidnightReset();
+    }, msUntilMidnight);
+  }
+
+  // Add new button by input
+  document.getElementById('addBtn').addEventListener('click', () => {
+    const input = document.getElementById('newNameInput');
+    const name = input.value.trim();
+    if (name) {
+      const container = document.getElementById('driversContainer');
+      const newBtn = createButton(name);
+      container.appendChild(newBtn);
+      addHistory(`${new Date().toLocaleTimeString()} ➜ Created new button "${name}"`);
+      input.value = '';
+    }
+  });
+
+  createBuildingButtons();
+  loadHistory();
+  checkMidnightReset();
+</script>
+
 </body>
 </html>
