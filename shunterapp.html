@@ -96,12 +96,48 @@
       font-size: 14px;
       margin-top: 10px;
     }
+
+    /* input box section */
+    .add-section {
+      text-align: center;
+      margin-bottom: 15px;
+    }
+
+    .add-section input {
+      padding: 6px 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      width: 160px;
+      font-size: 14px;
+    }
+
+    .add-section button {
+      padding: 6px 12px;
+      background-color: #0078d7;
+      border: none;
+      color: white;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      margin-left: 5px;
+    }
+
+    .add-section button:hover {
+      background-color: #005fa3;
+    }
   </style>
 </head>
 <body>
 
   <div class="section">
-    <h2>🏢 Building Locations</h2>
+    <h2>🏢 SHUNTER APP</h2>
+
+    <!-- new input area -->
+    <div class="add-section">
+      <input type="text" id="newNameInput" placeholder="Enter name..." />
+      <button id="addBtn">OK</button>
+    </div>
+
     <div class="drivers" id="driversContainer"></div>
   </div>
 
@@ -255,6 +291,19 @@
         checkMidnightReset();
       }, msUntilMidnight);
     }
+
+    // Add new button by input
+    document.getElementById('addBtn').addEventListener('click', () => {
+      const input = document.getElementById('newNameInput');
+      const name = input.value.trim();
+      if (name) {
+        const container = document.getElementById('driversContainer');
+        const newBtn = createButton(name);
+        container.appendChild(newBtn);
+        addHistory(`${new Date().toLocaleTimeString()} ➜ Created new button "${name}"`);
+        input.value = '';
+      }
+    });
 
     createBuildingButtons();
     loadHistory();
