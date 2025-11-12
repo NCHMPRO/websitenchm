@@ -36,7 +36,7 @@
       color: white;
       cursor: grab;
       font-weight: bold;
-      transition: 0.2s;
+      transition: background-color 0.3s, transform 0.2s;
       user-select: none;
     }
 
@@ -52,6 +52,12 @@
     .driver-btn.over {
       border: 2px dashed #007f6e;
       background-color: #c2fff5;
+    }
+
+    /* Pink active state */
+    .driver-btn.active {
+      background-color: pink !important;
+      color: #333;
     }
 
     #historyContainer {
@@ -108,12 +114,35 @@
   <script>
     let draggedItem = null;
 
-    // Creates a standard button
     function createButton(name) {
       const btn = document.createElement('button');
       btn.textContent = name;
       btn.className = 'driver-btn';
       btn.draggable = true;
+
+      // --- long press detection ---
+      let pressTimer = null;
+      let isActive = false;
+
+      btn.addEventListener('mousedown', () => {
+        pressTimer = setTimeout(() => {
+          if (!isActive) {
+            isActive = true;
+            btn.classList.add('active');
+            btn.textContent = '⚡ ' + name;
+            setTimeout(() => {
+              btn.classList.remove('active');
+              btn.textContent = name;
+              isActive = false;
+            }, 5000);
+          }
+        }, 5000);
+      });
+
+      ['mouseup', 'mouseleave'].forEach(event =>
+        btn.addEventListener(event, () => clearTimeout(pressTimer))
+      );
+      // --- end long press ---
 
       // Drag start
       btn.addEventListener('dragstart', (e) => {
@@ -153,7 +182,6 @@
       return btn;
     }
 
-    // Create all buttons from B, Middle, and C
     function createBuildingButtons() {
       const container = document.getElementById('driversContainer');
 
@@ -183,14 +211,12 @@
       for (let i = 1; i <= 26; i++) container.appendChild(createButton(`C${i}`));
     }
 
-    // Records the action in history and in localStorage
     function addHistory(action) {
       const historyList = document.getElementById('historyList');
       const li = document.createElement('li');
       li.textContent = action;
-      historyList.prepend(li); // newest on top
+      historyList.prepend(li);
 
-      // Save to localStorage
       const today = new Date().toISOString().split('T')[0];
       let historyData = JSON.parse(localStorage.getItem('dailyHistory')) || {};
       if (!historyData.date || historyData.date !== today) {
@@ -200,7 +226,6 @@
       localStorage.setItem('dailyHistory', JSON.stringify(historyData));
     }
 
-    // Load saved history if it's from the current day
     function loadHistory() {
       const historyList = document.getElementById('historyList');
       const data = JSON.parse(localStorage.getItem('dailyHistory'));
@@ -217,7 +242,6 @@
       }
     }
 
-    // Check if history should be reset after midnight
     function checkMidnightReset() {
       const now = new Date();
       const nextMidnight = new Date();
@@ -228,7 +252,7 @@
         localStorage.removeItem('dailyHistory');
         document.getElementById('historyList').innerHTML = '';
         document.getElementById('clearMsg').textContent = "✅ History cleared for the new day!";
-        checkMidnightReset(); // run again for the next day
+        checkMidnightReset();
       }, msUntilMidnight);
     }
 
